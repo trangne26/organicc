@@ -10,7 +10,6 @@
         </div>
       </div>
     </section>
-
     <div class="container mx-auto px-4 py-8">
       <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <main class="lg:col-span-3">
@@ -28,15 +27,11 @@
               </div>
             </div>
             <div class="p-6">
-              <div class="flex items-center space-x-4 text-sm text-gray-600 mb-3">
-
-              </div>
               <router-link :to="`/blog/${baiNoiBat.slug}`">
                 <h2 class="text-2xl font-bold text-gray-800 mb-3 hover:text-green-600 transition-colors">
                   {{ baiNoiBat.title }}
                 </h2>
-              </router-link>
-              <p class="text-gray-600 mb-4">{{ baiNoiBat.excerpt }}</p>
+              </router-link><p class="text-gray-600 mb-4">{{ baiNoiBat.excerpt }}</p>
               <router-link
                   :to="`/blog/${baiNoiBat.slug}`"
                   class="text-green-600 hover:text-green-700 font-semibold"
@@ -45,8 +40,7 @@
               </router-link>
             </div>
           </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <article
                 v-for="post in posts"
                 :key="post.id"
@@ -64,10 +58,6 @@
                 </div>
               </div>
               <div class="p-4">
-                <div class="flex items-center space-x-3 text-xs text-gray-600 mb-2">
-
-
-                </div>
                 <router-link :to="`/blog/${post.slug}`">
                   <h3 class="text-lg font-semibold text-gray-800 mb-2 hover:text-green-600 transition-colors">
                     {{ post.title }}
@@ -87,9 +77,7 @@
             </article>
           </div>
         </main>
-
         <aside class="lg:col-span-1">
-
           <div class="bg-white rounded-lg shadow-md p-6 mb-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-4">Tìm kiếm</h3>
             <div class="relative">
@@ -106,8 +94,6 @@
               </button>
             </div>
           </div>
-
-
           <div class="bg-white rounded-lg shadow-md p-6 mb-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-4">Bài viết gần đây</h3>
             <div class="space-y-4">
@@ -136,9 +122,7 @@
               </div>
             </div>
           </div>
-
-          <div class="bg-green-50 rounded-lg p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Nhận tin tức mới nhất</h3>
+          <div class="bg-green-50 rounded-lg p-6"><h3 class="text-lg font-semibold text-gray-800 mb-4">Nhận tin tức mới nhất</h3>
             <p class="text-sm text-gray-600 mb-4">
               Đăng ký để nhận những bài viết hay và ưu đãi đặc biệt
             </p>
@@ -273,9 +257,6 @@ const formatDate = (date) => {
     month: 'long',
     day: 'numeric'
   }).format(date)
-}
-const filterByCategory = (id) => {
-  danhMuc.value = id
 }
 
 const dangkyEmail = async () => {

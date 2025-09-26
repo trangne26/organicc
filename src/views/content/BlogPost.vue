@@ -12,7 +12,6 @@
         </div>
       </div>
     </div>
-
     <div v-else-if="!post" class="container mx-auto px-4 py-16 text-center">
       <div class="text-6xl text-gray-400 mb-4">📄</div>
       <h2 class="text-2xl font-bold text-gray-600 mb-4">Không tìm thấy bài viết</h2>
@@ -23,9 +22,7 @@
         Quay lại blog
       </router-link>
     </div>
-
     <article v-else class="container mx-auto px-4 py-8">
-
       <nav class="flex mb-8" aria-label="Breadcrumb">
         <ol class="flex items-center space-x-2 text-sm">
           <li>
@@ -39,9 +36,7 @@
           <li class="text-gray-700 font-medium">{{ post.title }}</li>
         </ol>
       </nav>
-
       <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-
         <main class="lg:col-span-3">
           <div class="bg-white rounded-lg shadow-md overflow-hidden">
             <div class="relative">
@@ -56,12 +51,10 @@
                 </span>
               </div>
             </div>
-
             <header class="p-6 md:p-8 border-b border-gray-200">
               <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
                 {{ post.title }}
               </h1>
-              
               <div class="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-4">
                 <div class="flex items-center space-x-2">
                   <span>👤</span>
@@ -80,18 +73,15 @@
                   <span>{{ post.views || 0 }} lượt xem</span>
                 </div>
               </div>
-
               <p class="text-lg text-gray-600 leading-relaxed">
                 {{ post.excerpt }}
               </p>
             </header>
-
             <div class="p-6 md:p-8">
               <div class="prose prose-lg max-w-none" v-html="post.content"></div>
             </div>
           </div>
         </main>
-
         <aside class="lg:col-span-1">
           <div class="bg-white rounded-lg shadow-md p-6 mb-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-4">Bài viết liên quan</h3>
@@ -121,7 +111,6 @@
               </div>
             </div>
           </div>
-
           <div class="bg-green-50 rounded-lg p-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-4">Nhận tin tức mới nhất</h3>
             <p class="text-sm text-gray-600 mb-4">
@@ -159,36 +148,8 @@ const slug = computed(() => route.params.slug)
 
 const loading = ref(true)
 const post = ref(null)
-const submittingComment = ref(false)
 const subscribing = ref(false)
 const newsletterEmail = ref('')
-
-const commentForm = ref({
-  name: '',
-  email: '',
-  message: ''
-})
-
-const authorInfo = ref({
-  bio: 'Chuyên gia dinh dưỡng và thực phẩm hữu cơ với nhiều năm kinh nghiệm trong lĩnh vực sức khỏe và dinh dưỡng.'
-})
-
-const comments = ref([
-  {
-    id: 1,
-    name: 'Nguyễn Thị Lan',
-    email: 'lan@example.com',
-    message: 'Bài viết rất hay và bổ ích! Cảm ơn tác giả đã chia sẻ những kiến thức quý báu.',
-    createdAt: new Date('2024-01-16')
-  },
-  {
-    id: 2,
-    name: 'Trần Văn Nam',
-    email: 'nam@example.com',
-    message: 'Tôi đã áp dụng những lời khuyên trong bài viết và thấy rất hiệu quả.',
-    createdAt: new Date('2024-01-17')
-  }
-])
 
 const relatedPosts = ref([
   {
@@ -265,27 +226,6 @@ const formatDate = (date) => {
     month: 'long',
     day: 'numeric'
   }).format(date)
-}
-
-const shareOnFacebook = () => {
-  const url = encodeURIComponent(window.location.href)
-  const text = encodeURIComponent(post.value.title)
-  window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${text}`, '_blank')
-}
-
-const shareOnTwitter = () => {
-  const url = encodeURIComponent(window.location.href)
-  const text = encodeURIComponent(post.value.title)
-  window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank')
-}
-
-const copyLink = async () => {
-  try {
-    await navigator.clipboard.writeText(window.location.href)
-    alert('Đã sao chép link vào clipboard!')
-  } catch (err) {
-    console.error('Failed to copy link:', err)
-  }
 }
 
 const dangkyEmail = async () => {

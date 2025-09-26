@@ -13,7 +13,6 @@
         </div>
       </div>
     </div>
-
     <div v-else-if="!product" class="container mx-auto px-4 py-16 text-center">
       <div class="text-6xl text-gray-400 mb-4">😞</div>
       <h2 class="text-2xl font-bold text-gray-600 mb-4">Không tìm thấy sản phẩm</h2>
@@ -24,7 +23,6 @@
         Quay lại danh sách sản phẩm
       </router-link>
     </div>
-
     <div v-else class="container mx-auto px-4 py-8">
       <nav class="flex mb-8" aria-label="Breadcrumb">
         <ol class="flex items-center space-x-2 text-sm">
@@ -39,7 +37,6 @@
           <li class="text-gray-700 font-medium">{{ product.name }}</li>
         </ol>
       </nav>
-
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
         <div class="space-y-4">
           <div class="relative">
@@ -57,7 +54,6 @@
               🔍
             </button>
           </div>
-
           <div v-if="product.images && product.images.length > 1" class="flex space-x-2 overflow-x-auto">
             <button
               v-for="(image, index) in product.images"
@@ -72,13 +68,11 @@
             </button>
           </div>
         </div>
-
         <div class="space-y-6">
           <div>
             <h1 class="text-3xl font-bold text-gray-800 mb-2">{{ product.name }}</h1>
             <p class="text-gray-600">{{ product.shortDescription }}</p>
           </div>
-
           <div class="flex items-center space-x-4">
             <span
               v-if="product.originalPrice && product.originalPrice !== product.price"
@@ -96,7 +90,6 @@
               -{{ product.discount }}%
             </span>
           </div>
-
           <div v-if="product.certifications && product.certifications.length > 0">
             <h3 class="text-sm font-semibold text-gray-700 mb-2">Chứng nhận:</h3>
             <div class="flex flex-wrap gap-2">
@@ -109,7 +102,6 @@
               </span>
             </div>
           </div>
-
           <div class="border-t border-gray-200 pt-6">
             <div class="flex items-center space-x-4 mb-4">
               <label class="text-sm font-medium text-gray-700">Số lượng:</label>
@@ -136,7 +128,6 @@
               </div>
               <span class="text-sm text-gray-600">{{ product.unit }}</span>
             </div>
-
             <div class="flex flex-col sm:flex-row gap-4">
               <button
                 @click="addToCart"
@@ -159,7 +150,6 @@
               </button>
             </div>
           </div>
-
           <div class="border-t border-gray-200 pt-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-4">Thông tin sản phẩm</h3>
             <div class="grid grid-cols-2 gap-4 text-sm">
@@ -183,23 +173,17 @@
           </div>
         </div>
       </div>
-
       <div class="mt-12 border-t border-gray-200 pt-8">
         <h2 class="text-2xl font-bold text-gray-800 mb-6">Mô tả sản phẩm</h2>
         <div class="prose max-w-none text-gray-600" v-html="product.description"></div>
       </div>
-
       <div class="mt-12 border-t border-gray-200 pt-8">
         <h2 class="text-2xl font-bold text-gray-800 mb-6">Sản phẩm liên quan</h2>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div
-            v-for="relatedProduct in relatedProducts"
-            :key="relatedProduct.id"
-            class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
+          <div v-for="relatedProduct in relatedProducts" :key="relatedProduct.id" class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
           >
             <router-link :to="`/product/${relatedProduct.id}`">
-              <img
-                :src="relatedProduct.image"
+              <img :src="relatedProduct.image"
                 :alt="relatedProduct.name"
                 class="w-full h-32 object-cover rounded-t-lg"
               />
@@ -224,7 +208,6 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
-const productId = computed(() => route.params.id)
 
 const loading = ref(true)
 const product = ref(null)

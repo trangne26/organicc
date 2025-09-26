@@ -35,7 +35,6 @@
         </div>
       </div>
     </section>
-
     <section class="categories py-16">
       <div class="container mx-auto px-4">
         <h2 class="text-3xl font-bold text-center text-gray-800 mb-12">
@@ -61,7 +60,6 @@
         </div>
       </div>
     </section>
-
     <section class="featured-products py-16 bg-gray-50">
       <div class="container mx-auto px-4">
         <h2 class="text-3xl font-bold text-center text-gray-800 mb-12">
@@ -117,7 +115,6 @@
         </div>
       </div>
     </section>
-
     <section class="commitments py-16">
       <div class="container mx-auto px-4">
         <h2 class="text-3xl font-bold text-center text-gray-800 mb-12">

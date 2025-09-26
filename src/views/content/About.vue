@@ -6,7 +6,6 @@
           <h1 class="text-4xl font-bold text-gray-800 mb-4">Giới thiệu về chúng tôi</h1>
           <p class="text-gray-600">
             Organic Store mang đến cho bạn những sản phẩm hữu cơ tự nhiên, an toàn và tốt cho sức khỏe.
-
           </p>
         </div>
       </div>
@@ -27,7 +26,6 @@
         </div>
       </div>
     </section>
-
     <section class="py-16 bg-green-50">
       <div class="container mx-auto px-6 text-center">
         <h2 class="text-2xl font-bold mb-4">Tại sao chọn Organic Store?</h2>
@@ -40,5 +38,4 @@
       </div>
     </section>
   </div>
-
 </template>

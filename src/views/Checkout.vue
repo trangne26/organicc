@@ -10,18 +10,15 @@
         </div>
       </div>
     </section>
-
     <div class="container mx-auto px-4 py-8">
       <div class="mb-8">
         <div class="flex items-center justify-center space-x-4 sm:space-x-8">
-          <div
-            v-for="(step, index) in checkoutSteps"
+          <div v-for="(step, index) in checkoutSteps"
             :key="step.id"
             class="flex items-center"
           >
             <div
-              :class="[
-                'w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold',
+              :class="['w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold',
                 currentStep >= index + 1
                   ? 'bg-green-600 text-white'
                   : 'bg-gray-300 text-gray-600'
@@ -40,14 +37,13 @@
             <div
               v-if="index < checkoutSteps.length - 1"
               :class="[
-                'w-8 sm:w-16 h-0.5 ml-4',
+           'w-8 sm:w-16 h-0.5 ml-4',
                 currentStep > index + 1 ? 'bg-green-600' : 'bg-gray-300'
               ]"
             ></div>
           </div>
         </div>
       </div>
-
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div class="lg:col-span-2">
           <form @submit.prevent="processOrder" class="space-y-8">
@@ -67,7 +63,6 @@
                     placeholder="Nhập họ và tên"
                   />
                 </div>
-                
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">
                     Số điện thoại *
@@ -80,7 +75,6 @@
                     placeholder="Nhập số điện thoại"
                   />
                 </div>
-                
                 <div class="md:col-span-2">
                   <label class="block text-sm font-medium text-gray-700 mb-2">
                     Email
@@ -92,7 +86,6 @@
                     placeholder="Nhập email (tùy chọn)"
                   />
                 </div>
-                
                 <div class="md:col-span-2">
                   <label class="block text-sm font-medium text-gray-700 mb-2">
                     Địa chỉ *
@@ -105,7 +98,6 @@
                     placeholder="Số nhà, tên đường"
                   />
                 </div>
-                
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">
                     Phường/Xã *
@@ -120,7 +112,6 @@
                     <option value="ward2">Phường 2</option>
                   </select>
                 </div>
-                
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">
                     Quận/Huyện *
@@ -135,7 +126,6 @@
                     <option value="district3">Quận 3</option>
                   </select>
                 </div>
-                
                 <div class="md:col-span-2">
                   <label class="block text-sm font-medium text-gray-700 mb-2">
                     Ghi chú
@@ -148,7 +138,6 @@
                   ></textarea>
                 </div>
               </div>
-              
               <div class="flex justify-end mt-6">
                 <button
                   type="button"
@@ -159,13 +148,10 @@
                 </button>
               </div>
             </div>
-
-            <div v-if="currentStep === 2" class="bg-white rounded-lg shadow-md p-6">
+        <div v-if="currentStep === 2" class="bg-white rounded-lg shadow-md p-6">
               <h2 class="text-xl font-semibold text-gray-800 mb-6">Phương thức giao hàng</h2>
-              
               <div class="space-y-4">
-                <div
-                  v-for="method in deliveryMethods"
+                <div v-for="method in deliveryMethods"
                   :key="method.id"
                   :class="[
                     'border rounded-lg p-4 cursor-pointer transition-colors',
@@ -196,7 +182,6 @@
                   </div>
                 </div>
               </div>
-              
               <div class="flex justify-between mt-6">
                 <button
                   type="button"
@@ -214,10 +199,8 @@
                 </button>
               </div>
             </div>
-
             <div v-if="currentStep === 3" class="bg-white rounded-lg shadow-md p-6">
               <h2 class="text-xl font-semibold text-gray-800 mb-6">Phương thức thanh toán</h2>
-              
               <div class="space-y-4">
                 <div
                   v-for="method in paymentMethods"
@@ -250,7 +233,6 @@
                   </div>
                 </div>
               </div>
-              
               <div class="flex justify-between mt-6">
                 <button
                   type="button"
@@ -270,13 +252,11 @@
             </div>
           </form>
         </div>
-
         <div class="lg:col-span-1">
           <div class="bg-white rounded-lg shadow-md sticky top-4">
             <div class="p-6 border-b border-gray-200">
               <h3 class="text-xl font-semibold text-gray-800">Đơn hàng của bạn</h3>
             </div>
-            
             <div class="p-6">
               <div class="space-y-4 mb-6">
                 <div
@@ -302,27 +282,22 @@
                   </span>
                 </div>
               </div>
-
               <div class="space-y-3 border-t border-gray-200 pt-4">
                 <div class="flex justify-between">
                   <span class="text-gray-600">Tạm tính:</span>
                   <span class="font-semibold">{{ formatPrice(subtotal) }}</span>
                 </div>
-                
                 <div class="flex justify-between">
                   <span class="text-gray-600">Phí vận chuyển:</span>
                   <span class="font-semibold">
                     {{ selectedDeliveryFee > 0 ? formatPrice(selectedDeliveryFee) : 'Miễn phí' }}
                   </span>
                 </div>
-                
                 <div v-if="discount > 0" class="flex justify-between text-green-600">
                   <span>Giảm giá:</span>
                   <span class="font-semibold">-{{ formatPrice(discount) }}</span>
                 </div>
-                
                 <hr class="border-gray-200" />
-                
                 <div class="flex justify-between text-lg font-bold">
                   <span>Tổng cộng:</span>
                   <span class="text-orange-500">{{ formatPrice(total) }}</span>

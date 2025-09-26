@@ -13,7 +13,6 @@
         </div>
       </div>
     </div>
-
     <div class="container mx-auto px-4 py-4">
       <div class="flex items-center justify-between">
         <router-link to="/" class="flex items-center space-x-3">
@@ -25,7 +24,6 @@
             <p class="text-xs text-gray-600">Thực phẩm hữu cơ tự nhiên</p>
           </div>
         </router-link>
-
         <div class="hidden md:flex flex-1 max-w-lg mx-8">
           <div class="relative w-full">
             <input
@@ -46,7 +44,6 @@
             </button>
           </div>
         </div>
-
         <div class="flex items-center space-x-4">
           <div class="relative" v-click-outside="Dongmenu">
             <button
@@ -57,7 +54,6 @@
               <span class="hidden sm:inline">{{ isLoggedIn ? 'Tài khoản' : 'Đăng nhập' }}</span>
               <span class="text-sm">{{ Dangmomenu ? '▲' : '▼' }}</span>
             </button>
-            
             <div
               v-show="Dangmomenu"
               class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50"
@@ -96,7 +92,6 @@
               </template>
             </div>
           </div>
-
           <router-link
             to="/cart"
             class="relative flex items-center space-x-2 text-gray-700 hover:text-green-600 transition-colors"
@@ -112,7 +107,6 @@
             </div>
             <span class="hidden sm:inline">Giỏ hàng</span>
           </router-link>
-
           <button
             @click="toggleMobileMenu"
             class="md:hidden text-gray-700 hover:text-green-600 transition-colors"
@@ -121,7 +115,6 @@
           </button>
         </div>
       </div>
-
       <div class="md:hidden mt-4">
         <div class="relative">
           <input
@@ -143,7 +136,6 @@
         </div>
       </div>
     </div>
-
     <nav class="bg-green-600 text-white">
       <div class="container mx-auto px-4">
         <div class="hidden md:flex items-center justify-between py-3">
@@ -183,7 +175,6 @@
               </div>
             </div>
           </div>
-
           <div class="flex items-center space-x-6">
             <router-link
               to="/blog"
@@ -205,7 +196,6 @@
             </router-link>
           </div>
         </div>
-
          <div
           v-show="mobileMenuOpen"
           class="md:hidden py-4 border-t border-green-500"
@@ -218,7 +208,6 @@
             >
               Tất cả sản phẩm
             </router-link>
-            
             <div>
               <button
                 @click="toggleMobileDanhmucMenu"
@@ -244,7 +233,6 @@
                 </router-link>
               </div>
             </div>
-            
             <router-link
               to="/blog"
               class="block py-2 hover:text-green-200 transition-colors"

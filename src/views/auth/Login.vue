@@ -15,7 +15,6 @@
             </router-link>
           </p>
         </div>
-        
         <form class="mt-8 space-y-6" @submit.prevent="handleLogin">
           <div class="rounded-md shadow-sm -space-y-px">
             <div>
@@ -39,7 +38,6 @@
               />
             </div>
           </div>
-
           <div class="flex items-center justify-between">
             <div class="flex items-center">
               <input
@@ -51,18 +49,15 @@
                 Ghi nhớ đăng nhập
               </label>
             </div>
-
             <div class="text-sm">
               <a href="#" class="font-medium text-green-600 hover:text-green-500">
                 Quên mật khẩu?
               </a>
             </div>
           </div>
-
           <div v-if="error" class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
             {{ error }}
           </div>
-
           <div>
             <button
               type="submit"
@@ -96,7 +91,6 @@
                 <span class="px-2 bg-gray-50 text-gray-500">đăng nhập với</span>
               </div>
             </div>
-
             <div class="mt-6 grid grid-cols-2 gap-3">
               <button
                 type="button"
@@ -135,30 +129,8 @@ const loading = ref(false)
 const error = ref('')
 
 const handleLogin = async () => {
-  loading.value = true
-  error.value = ''
-  
-  try {
-    await new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (form.value.email === 'user@example.com' && form.value.password === 'password') {
-          resolve()
-        } else {
-          reject(new Error('Email hoặc mật khẩu không chính xác'))
-        }
-      }, 1500)
-    })
-
-    localStorage.setItem('authToken', 'mock-jwt-token')
-
-    const redirectPath = router.currentRoute.value.query.redirect || '/'
-    router.push(redirectPath)
-    
-  } catch (err) {
-    error.value = err.message
-  } finally {
-    loading.value = false
-  }
+  localStorage.setItem('authToken', 'mock-jwt-token')
+  router.push('/')
 }
 </script>
 

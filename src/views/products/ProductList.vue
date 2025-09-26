@@ -12,13 +12,11 @@
         </div>
       </div>
     </section>
-
     <div class="container mx-auto px-4 py-8">
       <div class="flex flex-col lg:flex-row gap-8">
         <aside class="lg:w-1/4">
           <div class="bg-white rounded-lg shadow-md p-6 sticky top-4">
             <h3 class="text-lg font-semibold text-gray-800 mb-4">Bộ lọc</h3>
-
             <div class="mb-6">
               <label class="block text-sm font-medium text-gray-700 mb-2">
                 Tìm kiếm
@@ -31,7 +29,6 @@
                 @input="applyFilters"
               />
             </div>
-
             <div class="mb-6">
               <label class="block text-sm font-medium text-gray-700 mb-2">
                 Danh mục
@@ -47,7 +44,6 @@
                 </option>
               </select>
             </div>
-
             <div class="mb-6">
               <label class="block text-sm font-medium text-gray-700 mb-2">
                 Khoảng giá
@@ -73,7 +69,6 @@
                 </div>
               </div>
             </div>
-
             <div class="mb-6">
               <label class="block text-sm font-medium text-gray-700 mb-2">
                 Chứng nhận
@@ -91,7 +86,6 @@
                 </label>
               </div>
             </div>
-
             <button
               @click="clearFilters"
               class="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md transition-colors"
@@ -100,7 +94,6 @@
             </button>
           </div>
         </aside>
-
         <main class="lg:w-3/4">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <p class="text-gray-600">
@@ -128,7 +121,6 @@
               </div>
             </div>
           </div>
-
           <div v-else-if="filteredProducts.length === 0" class="text-center py-12">
             <div class="text-6xl text-gray-400 mb-4">🔍</div>
             <h3 class="text-xl font-semibold text-gray-600 mb-2">
@@ -138,7 +130,6 @@
               Thử điều chỉnh bộ lọc để tìm thấy sản phẩm phù hợp
             </p>
           </div>
-
           <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div
               v-for="product in paginatedProducts"
@@ -197,7 +188,6 @@
               </div>
             </div>
           </div>
-
           <div v-if="totalPages > 1" class="flex justify-center mt-8">
             <nav class="flex space-x-2">
               <button
@@ -292,38 +282,7 @@ const pageTitle = computed(() => {
 })
 
 const filteredProducts = computed(() => {
-  let result = [...products.value]
-
-  if (route.params.category) {
-    result = result.filter(product => product.category === route.params.category)
-  }
-
-  if (filters.value.search) {
-    const searchTerm = filters.value.search.toLowerCase()
-    result = result.filter(product =>
-      product.name.toLowerCase().includes(searchTerm) ||
-      product.Mota.toLowerCase().includes(searchTerm)
-    )
-  }
-
-  if (filters.value.category) {
-    result = result.filter(product => product.category === filters.value.category)
-  }
-
-  if (filters.value.minPrice) {
-    result = result.filter(product => product.price >= filters.value.minPrice)
-  }
-  if (filters.value.maxPrice) {
-    result = result.filter(product => product.price <= filters.value.maxPrice)
-  }
-
-  if (filters.value.certifications.length > 0) {
-    result = result.filter(product =>
-      filters.value.certifications.some(cert => product.certifications.includes(cert))
-    )
-  }
-
-  return result
+  return products.value
 })
 
 const sortedProducts = computed(() => {
@@ -378,7 +337,6 @@ const formatPrice = (price) => {
 }
 
 const addToCart = (product) => {
-  console.log('Add to cart:', product)
 }
 
 watch(() => route.params.category, () => {

@@ -2,10 +2,7 @@
   <div class="register">
     <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div class="max-w-md w-full space-y-8">
-        <div>
-          <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Tạo tài khoản mới
-          </h2>
+        <div><h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">Tạo tài khoản mới</h2>
           <p class="mt-2 text-center text-sm text-gray-600">
             <router-link
               to="/login"
@@ -15,7 +12,6 @@
             </router-link>
           </p>
         </div>
-        
         <form class="mt-8 space-y-6" @submit.prevent="handleRegister">
           <div class="space-y-4">
             <div>
@@ -30,7 +26,6 @@
                 placeholder="Nhập họ và tên"
               />
             </div>
-
             <div>
               <label class="block text-sm font-medium text-gray-700">
                 Email
@@ -43,7 +38,6 @@
                 placeholder="Nhập địa chỉ email"
               />
             </div>
-
             <div>
               <label class="block text-sm font-medium text-gray-700">
                 Số điện thoại
@@ -56,7 +50,6 @@
                 placeholder="Nhập số điện thoại"
               />
             </div>
-
             <div>
               <label class="block text-sm font-medium text-gray-700">
                 Mật khẩu
@@ -69,7 +62,6 @@
                 placeholder="Nhập mật khẩu"
               />
             </div>
-
             <div>
               <label class="block text-sm font-medium text-gray-700">
                 Xác nhận mật khẩu
@@ -83,15 +75,12 @@
               />
             </div>
           </div>
-
            <div v-if="error" class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
             {{ error }}
           </div>
-
           <div v-if="success" class="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded">
             {{ success }}
           </div>
-
           <div>
             <button
               type="submit"
@@ -116,7 +105,6 @@
               {{ loading ? 'Đang tạo tài khoản...' : 'Tạo tài khoản' }}
             </button>
           </div>
-
           <div class="mt-6">
             <div class="relative">
               <div class="absolute inset-0 flex items-center">
@@ -126,7 +114,6 @@
                 <span class="px-2 bg-gray-50 text-gray-500">Hoặc đăng ký với</span>
               </div>
             </div>
-
             <div class="mt-6 grid grid-cols-2 gap-3">
               <button
                 type="button"
@@ -134,7 +121,6 @@
               >
                 <span class="ml-2">Google</span>
               </button>
-
               <button
                 type="button"
                 class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
@@ -167,14 +153,6 @@ const loading = ref(false)
 const error = ref('')
 const success = ref('')
 
-const hasUpperCase = computed(() => {
-  return /[A-Z]/.test(form.value.password)
-})
-
-const hasNumber = computed(() => {
-  return /\d/.test(form.value.password)
-})
-
 const isFormValid = computed(() => {
   return (
     form.value.fullName.trim() &&
@@ -190,34 +168,7 @@ const handleRegister = async () => {
   error.value = ''
   success.value = ''
 
-  if (form.value.password !== form.value.confirmPassword) {
-    error.value = 'Mật khẩu xác nhận không khớp'
-    loading.value = false
-    return
-  }
-  
-  try {
-    await new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (form.value.email === 'existing@example.com') {
-          reject(new Error('Email này đã được sử dụng'))
-        } else {
-          resolve()
-        }
-      }, 2000)
-    })
-    
-    success.value = 'Tài khoản đã được tạo thành công! Đang chuyển hướng...'
-
-    setTimeout(() => {
-      router.push('/login')
-    }, 2000)
-    
-  } catch (err) {
-    error.value = err.message
-  } finally {
-    loading.value = false
-  }
+  router.push('/login')
 }
 </script>
 

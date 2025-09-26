@@ -1,7 +1,6 @@
 <template>
   <footer class="footer bg-gray-800 text-white">
-    <div class="container mx-auto px-4 py-12">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+    <div class="container mx-auto px-4 py-12"><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
        <div>
           <div class="flex items-center space-x-3 mb-6">
             <div class="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
@@ -16,9 +15,7 @@
             Chúng tôi cam kết mang đến cho bạn những sản phẩm thực phẩm hữu cơ 
             tươi ngon, an toàn và bổ dưỡng nhất từ các nông trại địa phương.
           </p>
-
         </div>
-
         <div>
           <h4 class="text-lg font-semibold mb-6">Liên kết nhanh</h4>
           <ul class="space-y-3">
@@ -66,13 +63,10 @@
             </li>
           </ul>
         </div>
-
        <div>
           <h4 class="text-lg font-semibold mb-6">Danh mục sản phẩm</h4>
           <ul class="space-y-3">
-            <li
-              v-for="category in categories"
-              :key="category.slug"
+            <li v-for="category in categories" :key="category.slug"
             >
               <router-link
                 :to="`/products/category/${category.slug}`"
@@ -84,10 +78,9 @@
             </li>
           </ul>
         </div>
-
         <div>
           <h4 class="text-lg font-semibold mb-6">Thông tin liên hệ</h4>
-          <div class="space-y-4">
+        <div class="space-y-4">
             <div class="flex items-start space-x-3">
               <span class="text-green-400 mt-1"></span>
               <div>
@@ -96,7 +89,6 @@
                 </p>
               </div>
             </div>
-            
             <div class="flex items-center space-x-3">
               <span class="text-green-400"></span>
               <div>
@@ -108,7 +100,6 @@
                 </a>
               </div>
             </div>
-            
             <div class="flex items-center space-x-3">
               <span class="text-green-400"></span>
               <div>
@@ -120,7 +111,6 @@
                 </a>
               </div>
             </div>
-            
             <div class="flex items-start space-x-3">
               <span class="text-green-400 mt-1"></span>
               <div>
@@ -133,7 +123,6 @@
         </div>
       </div>
     </div>
-
     <div class="bg-gray-700 py-8">
       <div class="container mx-auto px-4">
         <div class="text-center mb-6">
@@ -142,7 +131,6 @@
             Nhận thông tin về sản phẩm mới và ưu đãi đặc biệt
           </p>
         </div>
-        
         <form @submit.prevent="Guiemail" class="max-w-md mx-auto ">
           <div class="flex">
             <input
@@ -166,67 +154,54 @@
         </form>
       </div>
     </div>
-
     <div class="bg-gray-700 border-t border-gray-600 py-6">
       <div class="container mx-auto px-4">
         <div class="text-center">
           <h4 class="text-sm font-semibold text-gray-300 mb-4">Phương thức thanh toán</h4>
           <div class="flex justify-center items-center space-x-6 flex-wrap">
             <div class="flex items-center space-x-2 text-gray-300">
-
               <span class="text-sm">Tiền mặt</span>
             </div>
             <div class="flex items-center space-x-2 text-gray-300">
-
               <span class="text-sm">Chuyển khoản</span>
             </div>
             <div class="flex items-center space-x-2 text-gray-300">
-
               <span class="text-sm">MoMo</span>
             </div>
             <div class="flex items-center space-x-2 text-gray-300">
-
               <span class="text-sm">ZaloPay</span>
             </div>
             <div class="flex items-center space-x-2 text-gray-300">
-
               <span class="text-sm">VNPay</span>
             </div>
           </div>
         </div>
       </div>
     </div>
-
     <div class="bg-gray-700 border-t border-gray-600 py-6">
       <div class="container mx-auto px-4">
         <div class="text-center">
           <h4 class="text-sm font-semibold text-gray-300 mb-4">Chứng nhận & Cam kết</h4>
           <div class="flex justify-center items-center space-x-8 flex-wrap">
             <div class="flex items-center space-x-2 text-gray-300">
-
               <span class="text-xs">100% Hữu cơ</span>
             </div>
             <div class="flex items-center space-x-2 text-gray-300">
-
               <span class="text-xs">An toàn thực phẩm</span>
             </div>
             <div class="flex items-center space-x-2 text-gray-300">
-
               <span class="text-xs">Thân thiện môi trường</span>
             </div>
             <div class="flex items-center space-x-2 text-gray-300">
-
               <span class="text-xs">Chất lượng đảm bảo</span>
             </div>
           </div>
         </div>
       </div>
     </div>
-
     <div class="bg-gray-900 py-4">
       <div class="container mx-auto px-4">
         <div class="flex flex-col md:flex-row justify-between items-center">
-
           <div class="flex items-center space-x-4 mt-2 md:mt-0">
             <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">
               Chính sách bảo mật
@@ -243,7 +218,6 @@
         </div>
       </div>
     </div>
-
     <button
       v-show="showBackToTop"
       @click="scrollToTop"
@@ -256,14 +230,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 
 const Emaildki = ref('')
 const Dangui = ref(false)
 const Tbao = ref(null)
 const showBackToTop = ref(false)
-
-const currentYear = computed(() => new Date().getFullYear())
 
 const categories = ref([
   { name: 'Rau củ quả', slug: 'vegetables' },
@@ -277,36 +249,10 @@ const categories = ref([
 const Guiemail = async () => {
   Dangui.value = true
   Tbao.value = null
-  
-  try {
-    await new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (Math.random() > 0.1) {
-          resolve()
-        } else {
-          reject(new Error('Có lỗi xảy ra'))
-        }
-      }, 1500)
-    })
-    
-    Tbao.value = {
-      type: 'success',
-      text: 'Đăng ký thành công! Cảm ơn bạn đã quan tâm.'
-    }
-    
-    Emaildki.value = ''
-    
-  } catch (error) {
-    Tbao.value = {
-      type: 'error',
-      text: error.message
-    }
-  } finally {
-    Dangui.value = false
 
-    setTimeout(() => {
-      Tbao.value = null
-    }, 3000)
+  Tbao.value = {
+    type: 'success',
+    text: 'Đăng ký thành công! Cảm ơn bạn đã quan tâm.'
   }
 }
 
