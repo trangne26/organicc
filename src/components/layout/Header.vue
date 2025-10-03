@@ -51,7 +51,7 @@
               class="flex items-center space-x-2 text-gray-700 hover:text-green-600 transition-colors"
             >
               <span class="text-xl">👤</span>
-              <span class="hidden sm:inline">{{ isLoggedIn ? 'Tài khoản' : 'Đăng nhập' }}</span>
+              <span class="hidden sm:inline">{{ isLoggedIn ? (userName || 'Tài khoản') : 'Đăng nhập' }}</span>
               <span class="text-sm">{{ Dangmomenu ? '▲' : '▼' }}</span>
             </button>
             <div
@@ -65,6 +65,14 @@
                   @click="Dongmenu"
                 >
                   👤 Thông tin cá nhân
+                </router-link>
+                <router-link
+                  v-if="isAdmin"
+                  to="/admin"
+                  class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                  @click="Dongmenu"
+                >
+                  ⚙️ Quản trị
                 </router-link>
                 <hr class="my-2">
                 <button
@@ -162,16 +170,30 @@
                 v-show="Modanhmuc"
                 class="absolute left-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50"
               >
-                <router-link
-                  v-for="category in Danhmuc"
-                  :key="category.slug"
-                  :to="`/products/category/${category.slug}`"
-                  class="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                  @click="closeDanhmucMenu"
-                >
-                  <span>{{ category.icon }}</span>
-                  <span>{{ category.name }}</span>
-                </router-link>
+                <!-- Loading state -->
+                <div v-if="isLoadingCategories" class="flex items-center justify-center py-4">
+                  <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-green-600"></div>
+                  <span class="ml-2 text-sm text-gray-600">Đang tải...</span>
+                </div>
+                
+                <!-- Error state -->
+                <div v-else-if="categoriesError" class="px-4 py-2 text-sm text-red-600">
+                  {{ categoriesError }}
+                </div>
+                
+                <!-- Categories list -->
+                <template v-else>
+                  <router-link
+                    v-for="category in Danhmuc"
+                    :key="category.id"
+                    :to="`/products/category/${category.id}`"
+                    class="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    @click="closeDanhmucMenu"
+                  >
+                    <span>{{ category.icon || '📦' }}</span>
+                    <span>{{ category.name }}</span>
+                  </router-link>
+                </template>
               </div>
             </div>
           </div>
@@ -221,16 +243,30 @@
                 v-show="mobileModanhmuc"
                 class="ml-4 mt-2 space-y-2"
               >
-                <router-link
-                  v-for="category in Danhmuc"
-                  :key="category.slug"
-                  :to="`/products/category/${category.slug}`"
-                  class="flex items-center space-x-2 py-1 text-sm hover:text-green-200 transition-colors"
-                  @click="closeMobileMenu"
-                >
-                  <span>{{ category.icon }}</span>
-                  <span>{{ category.name }}</span>
-                </router-link>
+                <!-- Loading state -->
+                <div v-if="isLoadingCategories" class="flex items-center justify-center py-2">
+                  <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <span class="ml-2 text-sm">Đang tải...</span>
+                </div>
+                
+                <!-- Error state -->
+                <div v-else-if="categoriesError" class="px-2 py-1 text-sm text-red-300">
+                  {{ categoriesError }}
+                </div>
+                
+                <!-- Categories list -->
+                <template v-else>
+                  <router-link
+                    v-for="category in Danhmuc"
+                    :key="category.id"
+                    :to="`/products/category/${category.id}`"
+                    class="flex items-center space-x-2 py-1 text-sm hover:text-green-200 transition-colors"
+                    @click="closeMobileMenu"
+                  >
+                    <span>{{ category.icon || '📦' }}</span>
+                    <span>{{ category.name }}</span>
+                  </router-link>
+                </template>
               </div>
             </div>
             <router-link
@@ -262,10 +298,13 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuth } from '@/composables/useAuth'
+import { categoriesApi } from '@/api'
 
 const router = useRouter()
+const { isLoggedIn, userName, isAdmin, logout: authLogout } = useAuth()
 
 const Tukhoa = ref('')
 const Dangmomenu = ref(false)
@@ -273,20 +312,36 @@ const Modanhmuc = ref(false)
 const mobileMenuOpen = ref(false)
 const mobileModanhmuc = ref(false)
 
-const isLoggedIn = computed(() => {
-  return localStorage.getItem('authToken') !== null
-})
-
 const Soluongsp = ref(3)
 
-const Danhmuc = ref([
-  { name: 'Rau củ quả', slug: 'vegetables' },
-  { name: 'Trái cây', slug: 'fruits'},
-  { name: 'Ngũ cốc', slug: 'grains' },
-  { name: 'Gia vị', slug: 'spices'},
-  { name: 'Đồ khô', slug: 'dried-goods' },
-  { name: 'Chế biến', slug: 'processed'}
-])
+// Categories data
+const Danhmuc = ref([])
+const isLoadingCategories = ref(false)
+const categoriesError = ref(null)
+
+// Fetch categories from API
+const fetchCategories = async () => {
+  try {
+    isLoadingCategories.value = true
+    categoriesError.value = null
+    const response = await categoriesApi.listCategories()
+    Danhmuc.value = response.data || []
+  } catch (error) {
+    console.error('Error fetching categories:', error)
+    categoriesError.value = 'Không thể tải danh mục'
+    // Fallback data
+    Danhmuc.value = [
+      { id: 1, name: 'Rau củ quả', slug: 'vegetables', icon: '🥬' },
+      { id: 2, name: 'Trái cây', slug: 'fruits', icon: '🍎' },
+      { id: 3, name: 'Ngũ cốc', slug: 'grains', icon: '🌾' },
+      { id: 4, name: 'Gia vị', slug: 'spices', icon: '🌿' },
+      { id: 5, name: 'Đồ khô', slug: 'dried-goods', icon: '🥜' },
+      { id: 6, name: 'Chế biến', slug: 'processed', icon: '🍯' }
+    ]
+  } finally {
+    isLoadingCategories.value = false
+  }
+}
 
 const Timkiem = () => {
   if (Tukhoa.value.trim()) {
@@ -329,11 +384,16 @@ const toggleMobileDanhmucMenu = () => {
   mobileModanhmuc.value = !mobileModanhmuc.value
 }
 
-const logout = () => {
-  localStorage.removeItem('authToken')
+const logout = async () => {
+  await authLogout()
   Dongmenu()
   router.push('/')
 }
+
+// Load categories when component mounts
+onMounted(() => {
+  fetchCategories()
+})
 
 const vClickOutside = {
   beforeMount(el, binding) {

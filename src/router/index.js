@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuth } from '@/composables/useAuth'
 
 import ClientLayout from '@/components/layout/ClientLayout.vue'
 import AdminLayout from '@/views/admin/AdminLayout.vue'
@@ -146,31 +147,31 @@ const routes = [
   {
     path: '/admin',
     component: AdminLayout,
-    meta: { title: 'Quản trị - Thực phẩm hữu cơ', requiresAuth: true },
+    meta: { title: 'Quản trị - Thực phẩm hữu cơ', requiresAuth: true, requiresAdmin: true },
     children: [
       {
         path: '',
         name: 'AdminDashboard',
         component: AdminDashboard,
-        meta: { title: 'Admin - Bảng điều khiển', requiresAuth: true },
+        meta: { title: 'Admin - Bảng điều khiển', requiresAuth: true, requiresAdmin: true },
       },
       {
         path: 'products',
         name: 'AdminProducts',
         component: AdminProducts,
-        meta: { title: 'Admin - Sản phẩm', requiresAuth: true },
+        meta: { title: 'Admin - Sản phẩm', requiresAuth: true, requiresAdmin: true },
       },
       {
         path: 'categories',
         name: 'AdminCategories',
         component: AdminCategories,
-        meta: { title: 'Admin - Danh mục', requiresAuth: true },
+        meta: { title: 'Admin - Danh mục', requiresAuth: true, requiresAdmin: true },
       },
       {
         path: 'orders',
         name: 'AdminOrders',
         component: AdminOrders,
-        meta: { title: 'Admin - Đơn hàng', requiresAuth: true },
+        meta: { title: 'Admin - Đơn hàng', requiresAuth: true, requiresAdmin: true },
       },
     ],
   },
@@ -198,21 +199,40 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  next()
+  // Set document title
+  if (to.meta.title) {
+    document.title = to.meta.title
+  }
 
-  // if (to.meta.title) {
-  //   document.title = to.meta.title
-  // }
-
-  // const isAuthenticated = localStorage.getItem('authToken') !== null
+  // Get auth state
+  const { isLoggedIn, isAdmin } = useAuth()
   
-  // if (to.meta.requiresAuth && !isAuthenticated) {
-  //   next({ name: 'Login', query: { redirect: to.fullPath } })
-  // } else if (to.meta.hideForAuth && isAuthenticated) {
-  //   next({ name: 'Home' })
-  // } else {
-  //   next()
-  // }
+  // Check if route requires authentication
+  if (to.meta.requiresAuth && !isLoggedIn.value) {
+    next({ name: 'Login', query: { redirect: to.fullPath } })
+    return
+  }
+  
+  // Check if route requires admin privileges
+  if (to.meta.requiresAdmin && !isAdmin.value) {
+    // If user is logged in but not admin, redirect to home
+    if (isLoggedIn.value) {
+      next({ name: 'Home' })
+    } else {
+      // If not logged in, redirect to login
+      next({ name: 'Login', query: { redirect: to.fullPath } })
+    }
+    return
+  }
+  
+  // Check if route should be hidden for authenticated users
+  if (to.meta.hideForAuth && isLoggedIn.value) {
+    next({ name: 'Home' })
+    return
+  }
+  
+  // Allow navigation
+  next()
 })
 
 export default router

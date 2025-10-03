@@ -27,8 +27,7 @@ http.interceptors.response.use(
   (response) => {
     const { data } = response
     if (data && typeof data === 'object') {
-      // Prefer nested data shape if present
-      if ('data' in data) return data.data
+      // Trả về toàn bộ response data để giữ nguyên cấu trúc { success, message, data }
       return data
     }
     return response

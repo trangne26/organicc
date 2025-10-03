@@ -65,18 +65,25 @@
         </div>
        <div>
           <h4 class="text-lg font-semibold mb-6">Danh mục sản phẩm</h4>
-          <ul class="space-y-3">
-            <li v-for="category in categories" :key="category.slug"
-            >
+          <div v-if="categoriesLoading" class="space-y-3">
+            <div v-for="i in 6" :key="i" class="animate-pulse">
+              <div class="h-4 bg-gray-600 rounded w-3/4"></div>
+            </div>
+          </div>
+          <ul v-else-if="categories.length > 0" class="space-y-3">
+            <li v-for="category in categories" :key="category.slug">
               <router-link
-                :to="`/products/category/${category.slug}`"
+                :to="`/products/category/${category.id}`"
                 class="text-gray-300 hover:text-white transition-colors text-sm flex items-center space-x-2"
               >
-                <span>{{ category.icon }}</span>
+                <span v-if="category.icon">{{ category.icon }}</span>
                 <span>{{ category.name }}</span>
               </router-link>
             </li>
           </ul>
+          <div v-else class="text-gray-400 text-sm">
+            Không có danh mục nào
+          </div>
         </div>
         <div>
           <h4 class="text-lg font-semibold mb-6">Thông tin liên hệ</h4>
@@ -231,20 +238,15 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useCategories } from '@/composables/useCategories'
 
 const Emaildki = ref('')
 const Dangui = ref(false)
 const Tbao = ref(null)
 const showBackToTop = ref(false)
 
-const categories = ref([
-  { name: 'Rau củ quả', slug: 'vegetables' },
-  { name: 'Trái cây', slug: 'fruits' },
-  { name: 'Ngũ cốc', slug: 'grains' },
-  { name: 'Gia vị', slug: 'spices' },
-  { name: 'Đồ khô', slug: 'dried-goods' },
-  { name: 'Chế biến', slug: 'processed' }
-])
+// Sử dụng composable để lấy dữ liệu categories từ API
+const { categories, loading: categoriesLoading, fetchCategories } = useCategories()
 
 const Guiemail = async () => {
   Dangui.value = true
@@ -267,8 +269,14 @@ const handleScroll = () => {
   showBackToTop.value = window.scrollY > 300
 }
 
-onMounted(() => {
+onMounted(async () => {
   window.addEventListener('scroll', handleScroll)
+  // Tải danh mục sản phẩm từ API khi component được mount
+  try {
+    await fetchCategories()
+  } catch (error) {
+    console.error('Failed to load categories:', error)
+  }
 })
 
 onUnmounted(() => {

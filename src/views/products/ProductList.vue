@@ -26,7 +26,6 @@
                 type="text"
                 placeholder="Tìm kiếm sản phẩm..."
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                @input="applyFilters"
               />
             </div>
             <div class="mb-6">
@@ -34,13 +33,12 @@
                 Danh mục
               </label>
               <select
-                v-model="filters.category"
+                v-model="filters.category_id"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                @change="applyFilters"
               >
                 <option value="">Tất cả danh mục</option>
-                <option v-for="category in categories" :key="category.value" :value="category.value">
-                  {{ category.label }}
+                <option v-for="category in categories" :key="category.id" :value="category.id">
+                  {{ category.name }}
                 </option>
               </select>
             </div>
@@ -51,39 +49,20 @@
               <div class="space-y-2">
                 <div class="flex items-center">
                   <input
-                    v-model="filters.minPrice"
+                    v-model="filters.min_price"
                     type="number"
                     placeholder="Từ"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    @input="applyFilters"
                   />
                 </div>
                 <div class="flex items-center">
                   <input
-                    v-model="filters.maxPrice"
+                    v-model="filters.max_price"
                     type="number"
                     placeholder="Đến"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    @input="applyFilters"
                   />
                 </div>
-              </div>
-            </div>
-            <div class="mb-6">
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Chứng nhận
-              </label>
-              <div class="space-y-2">
-                <label v-for="cert in certifications" :key="cert.value" class="flex items-center">
-                  <input
-                    v-model="filters.certifications"
-                    :value="cert.value"
-                    type="checkbox"
-                    class="rounded border-gray-300 text-green-600 focus:ring-green-500"
-                    @change="applyFilters"
-                  />
-                  <span class="ml-2 text-sm text-gray-700">{{ cert.label }}</span>
-                </label>
               </div>
             </div>
             <button
@@ -97,17 +76,15 @@
         <main class="lg:w-3/4">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <p class="text-gray-600">
-              Hiển thị {{ filteredProducts.length }} sản phẩm
+              Hiển thị {{ totalItems }} sản phẩm
             </p>
             <select
               v-model="sortBy"
               class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              @change="applySorting"
             >
-              <option value="name">Sắp xếp theo tên</option>
-              <option value="price-asc">Giá: Thấp đến cao</option>
-              <option value="price-desc">Giá: Cao đến thấp</option>
-              <option value="newest">Mới nhất</option>
+              <option value="">Sắp xếp mặc định</option>
+              <option value="asc">Giá: Thấp đến cao</option>
+              <option value="desc">Giá: Cao đến thấp</option>
             </select>
           </div>
 
@@ -121,7 +98,7 @@
               </div>
             </div>
           </div>
-          <div v-else-if="filteredProducts.length === 0" class="text-center py-12">
+          <div v-else-if="products.length === 0" class="text-center py-12">
             <div class="text-6xl text-gray-400 mb-4">🔍</div>
             <h3 class="text-xl font-semibold text-gray-600 mb-2">
               Không tìm thấy sản phẩm
@@ -132,30 +109,19 @@
           </div>
           <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div
-              v-for="product in paginatedProducts"
+              v-for="product in products"
               :key="product.id"
               class="product-card bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
             >
               <div class="relative">
                 <router-link :to="`/product/${product.id}`">
                   <img
-                    :src="product.image"
+                    :src="getPrimaryImage(product)"
                     :alt="product.name"
                     class="w-full h-48 object-cover rounded-t-lg"
+                    @error="handleImageError"
                   />
                 </router-link>
-                <span
-                  v-if="product.isNew"
-                  class="absolute top-2 left-2 bg-orange-500 text-white px-2 py-1 rounded text-xs font-semibold"
-                >
-                  Mới
-                </span>
-                <span
-                  v-if="product.discount"
-                  class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold"
-                >
-                  -{{ product.discount }}%
-                </span>
               </div>
               <div class="p-4">
                 <router-link :to="`/product/${product.id}`">
@@ -164,16 +130,10 @@
                   </h3>
                 </router-link>
                 <p class="text-sm text-gray-600 mb-3">
-                  {{ product.Mota }}
+                  {{ product.description }}
                 </p>
                 <div class="flex items-center justify-between">
                   <div>
-                    <span
-                      v-if="product.originalPrice && product.originalPrice !== product.price"
-                      class="text-sm text-gray-400 line-through mr-2"
-                    >
-                      {{ formatPrice(product.originalPrice) }}
-                    </span>
                     <span class="text-xl font-bold text-orange-500">
                       {{ formatPrice(product.price) }}
                     </span>
@@ -199,7 +159,7 @@
                     ? 'bg-green-600 text-white'
                     : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
                 ]"
-                @click="currentPage = page"
+                @click="goToPage(page)"
               >
                 {{ page }}
               </button>
@@ -214,140 +174,154 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { listProducts } from '@/api/products'
+import { useProductImage } from '@/composables/useProductImage'
+import { listCategories } from '@/api/categories'
 
 const route = useRoute()
+const { getPrimaryImage, formatPrice, handleImageError } = useProductImage()
 
 const loading = ref(true)
 const currentPage = ref(1)
-const itemsPerPage = 9
-const sortBy = ref('name')
+const itemsPerPage = ref(15)
+const sortBy = ref('')
+const totalItems = ref(0)
+const totalPages = ref(0)
 
 const filters = ref({
   search: '',
-  category: '',
-  minPrice: null,
-  maxPrice: null,
-  certifications: []
+  category_id: '',
+  min_price: null,
+  max_price: null,
+  active: true
 })
 
-const categories = ref([
-  { value: 'vegetables', label: 'Rau củ quả' },
-  { value: 'fruits', label: 'Trái cây' },
-  { value: 'grains', label: 'Ngũ cốc' },
-  { value: 'spices', label: 'Gia vị' },
-  { value: 'dried-goods', label: 'Đồ khô' },
-  { value: 'processed', label: 'Chế biến' }
-])
-
-const certifications = ref([
-  { value: 'organic', label: 'Hữu cơ' },
-  { value: 'vegan', label: 'Thuần chay' },
-  { value: 'gluten-free', label: 'Không gluten' },
-  { value: 'non-gmo', label: 'Không biến đổi gen' }
-])
-
-const products = ref([
-  {
-    id: 1,
-    name: 'Rau cải xanh hữu cơ',
-    Mota: 'Rau cải xanh tươi ngon, không thuốc trừ sâu',
-    price: 25000,
-    originalPrice: null,
-    image: '/images/products/cai-xanh.jpg',
-    category: 'vegetables',
-    isNew: true,
-    discount: null,
-    certifications: ['organic']
-  },
-  {
-    id: 2,
-    name: 'Táo Fuji hữu cơ',
-    Mota: 'Táo Fuji ngọt ngào, giòn tan',
-    price: 45000,
-    originalPrice: 50000,
-    image: '/images/products/tao-fuji.jpg',
-    category: 'fruits',
-    isNew: false,
-    discount: 10,
-    certifications: ['organic']
-  },
-])
+const categories = ref([])
+const products = ref([])
 
 const pageTitle = computed(() => {
   if (route.params.category) {
-    const category = categories.value.find(c => c.value === route.params.category)
-    return category ? category.label : 'Sản phẩm'
+    const categoryId = parseInt(route.params.category)
+    const category = categories.value.find(c => c.id === categoryId)
+    return category ? category.name : 'Sản phẩm'
   }
   return 'Tất cả sản phẩm'
 })
 
-const filteredProducts = computed(() => {
-  return products.value
-})
+// Fetch products from API
+const fetchProducts = async () => {
+  try {
+    loading.value = true
+    
+    const params = {
+      page: currentPage.value,
+      per_page: itemsPerPage.value,
+      active: filters.value.active
+    }
 
-const sortedProducts = computed(() => {
-  const result = [...filteredProducts.value]
+    // Add filters if they have values
+    if (filters.value.search) params.search = filters.value.search
+    if (filters.value.category_id) params.category_id = filters.value.category_id
+    if (filters.value.min_price) params.min_price = filters.value.min_price
+    if (filters.value.max_price) params.max_price = filters.value.max_price
+    if (sortBy.value) params.sort_price = sortBy.value
 
-  switch (sortBy.value) {
-    case 'price-asc':
-      return result.sort((a, b) => a.price - b.price)
-    case 'price-desc':
-      return result.sort((a, b) => b.price - a.price)
-    case 'newest':
-      return result.sort((a, b) => b.isNew - a.isNew)
-    default:
-      return result.sort((a, b) => a.name.localeCompare(b.name))
+    const response = await listProducts(params)
+    
+    if (response.success) {
+      products.value = response.data || []
+      totalItems.value = response.meta?.total || 0
+      totalPages.value = response.meta?.last_page || 1
+    } else {
+      console.error('Failed to fetch products:', response.message)
+      products.value = []
+    }
+  } catch (error) {
+    console.error('Error fetching products:', error)
+    products.value = []
+  } finally {
+    loading.value = false
   }
-})
-
-const totalPages = computed(() => {
-  return Math.ceil(sortedProducts.value.length / itemsPerPage)
-})
-
-const paginatedProducts = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage
-  const end = start + itemsPerPage
-  return sortedProducts.value.slice(start, end)
-})
-
-const applyFilters = () => {
-  currentPage.value = 1
 }
 
-const applySorting = () => {
-  currentPage.value = 1
+// Fetch categories from API
+const fetchCategories = async () => {
+  try {
+    const response = await listCategories()
+    if (response.success) {
+      categories.value = response.data || []
+    }
+  } catch (error) {
+    console.error('Error fetching categories:', error)
+    categories.value = []
+  }
 }
+
 
 const clearFilters = () => {
   filters.value = {
     search: '',
-    category: '',
-    minPrice: null,
-    maxPrice: null,
-    certifications: []
+    category_id: '',
+    min_price: null,
+    max_price: null,
+    active: true
   }
+  sortBy.value = ''
   currentPage.value = 1
+  fetchProducts()
 }
 
-const formatPrice = (price) => {
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND'
-  }).format(price)
+const goToPage = (page) => {
+  currentPage.value = page
+  fetchProducts()
 }
+
 
 const addToCart = (product) => {
+  // TODO: Implement add to cart functionality
 }
 
-watch(() => route.params.category, () => {
-  filters.value.category = ''
+// Watch for route changes
+watch(() => route.params.category, (newCategory) => {
+  if (newCategory) {
+    filters.value.category_id = parseInt(newCategory)
+  } else {
+    filters.value.category_id = ''
+  }
   currentPage.value = 1
+  fetchProducts()
+}, { immediate: true })
+
+// Watch for query parameter changes (search)
+watch(() => route.query.search, (newSearch) => {
+  if (newSearch) {
+    filters.value.search = decodeURIComponent(newSearch)
+  } else {
+    filters.value.search = ''
+  }
+  currentPage.value = 1
+  fetchProducts()
+}, { immediate: true })
+
+// Watch for filter changes with debounce
+let filterTimeout = null
+watch(filters, () => {
+  if (filterTimeout) clearTimeout(filterTimeout)
+  filterTimeout = setTimeout(() => {
+    currentPage.value = 1
+    fetchProducts()
+  }, 500)
+}, { deep: true })
+
+// Watch for sorting changes
+watch(sortBy, () => {
+  currentPage.value = 1
+  fetchProducts()
 })
 
-onMounted(() => {
-  setTimeout(() => {
-    loading.value = false
-  }, 1000)
+onMounted(async () => {
+  await fetchCategories()
+  // fetchProducts() will be called by the route watcher with immediate: true
 })
 </script>
 

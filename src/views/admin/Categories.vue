@@ -46,7 +46,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { categoriesApi } from '@/api'
-
 const items = ref([])
 const showForm = ref(false)
 const editingId = ref(null)

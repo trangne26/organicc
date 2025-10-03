@@ -40,7 +40,25 @@
         <h2 class="text-3xl font-bold text-center text-gray-800 mb-12">
           Danh mục sản phẩm
         </h2>
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        
+        <!-- Loading state -->
+        <div v-if="isLoadingCategories" class="flex justify-center items-center py-8">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+        </div>
+        
+        <!-- Error state -->
+        <div v-else-if="categoriesError" class="text-center py-8">
+          <p class="text-red-600 mb-4">{{ categoriesError }}</p>
+          <button 
+            @click="fetchCategories"
+            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            Thử lại
+          </button>
+        </div>
+        
+        <!-- Categories grid -->
+        <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           <div
             v-for="category in categories"
             :key="category.id"
@@ -65,17 +83,35 @@
         <h2 class="text-3xl font-bold text-center text-gray-800 mb-12">
           Sản phẩm nổi bật
         </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Loading state -->
+        <div v-if="isLoadingProducts" class="flex justify-center items-center py-8">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+        </div>
+        
+        <!-- Error state -->
+        <div v-else-if="productsError" class="text-center py-8">
+          <p class="text-red-600 mb-4">{{ productsError }}</p>
+          <button 
+            @click="fetchFeaturedProducts"
+            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            Thử lại
+          </button>
+        </div>
+        
+        <!-- Products grid -->
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div
-            v-for="product in Spnoibat"
+            v-for="product in featuredProducts"
             :key="product.id"
             class="product-card bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
           >
             <div class="relative">
               <img
-                :src="product.image"
+                :src="getPrimaryImage(product)"
                 :alt="product.name"
                 class="w-full h-48 object-cover rounded-t-lg"
+                @error="handleImageError"
               />
               <span
                 v-if="product.isNew"
@@ -141,90 +177,55 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { categoriesApi, productsApi } from '@/api'
+import { useProductImage } from '@/composables/useProductImage'
 
 const router = useRouter()
+const { getPrimaryImage, formatPrice, handleImageError } = useProductImage()
 
-const categories = ref([
-  {
-    id: 1,
-    name: 'Rau củ quả',
-    slug: 'vegetables',
-    icon: '🥬',
-    description: 'Rau củ tươi ngon, an toàn'
-  },
-  {
-    id: 2,
-    name: 'Trái cây',
-    slug: 'fruits',
-    icon: '🍎',
-    description: 'Trái cây ngọt ngào, bổ dưỡng'
-  },
-  {
-    id: 3,
-    name: 'Ngũ cốc',
-    slug: 'grains',
-    icon: '🌾',
-    description: 'Ngũ cốc nguyên chất, dinh dưỡng'
-  },
-  {
-    id: 4,
-    name: 'Gia vị',
-    slug: 'spices',
-    icon: '🌿',
-    description: 'Gia vị thơm ngon, tự nhiên'
-  },
-  {
-    id: 5,
-    name: 'Đồ khô',
-    slug: 'dried-goods',
-    icon: '🥜',
-    description: 'Đồ khô chất lượng cao'
-  },
-  {
-    id: 6,
-    name: 'Chế biến',
-    slug: 'processed',
-    icon: '🍯',
-    description: 'Sản phẩm chế biến hữu cơ'
-  }
-])
+// Reactive data
+const categories = ref([])
+const featuredProducts = ref([])
+const isLoadingCategories = ref(false)
+const isLoadingProducts = ref(false)
+const categoriesError = ref(null)
+const productsError = ref(null)
 
-const Spnoibat = ref([
-  {
-    id: 1,
-    name: 'Rau cải xanh hữu cơ',
-    description: 'Rau cải xanh tươi ngon, không thuốc trừ sâu',
-    price: 25000,
-    image: '/images/products/cai-xanh.jpg',
-    isNew: true
-  },
-  {
-    id: 2,
-    name: 'Táo Fuji hữu cơ',
-    description: 'Táo Fuji ngọt ngào, giòn tan',
-    price: 45000,
-    image: '/images/products/tao-fuji.jpg',
-    isNew: false
-  },
-  {
-    id: 3,
-    name: 'Gạo lứt đỏ hữu cơ',
-    description: 'Gạo lứt đỏ bổ dưỡng, thơm ngon',
-    price: 35000,
-    image: '/images/products/gao-lut-do.jpg',
-    isNew: true
-  },
-  {
-    id: 4,
-    name: 'Mật ong rừng nguyên chất',
-    description: 'Mật ong rừng 100% nguyên chất',
-    price: 120000,
-    image: '/images/products/mat-ong.jpg',
-    isNew: false
+// Fetch categories from API
+const fetchCategories = async () => {
+  try {
+    isLoadingCategories.value = true
+    categoriesError.value = null
+    const response = await categoriesApi.listCategories()
+    categories.value = response.data || []
+  } catch (error) {
+    console.error('Error fetching categories:', error)
+    categoriesError.value = 'Không thể tải danh mục sản phẩm'
+    // Fallback data
+    categories.value = []
+  } finally {
+    isLoadingCategories.value = false
   }
-])
+}
+
+// Fetch featured products from API
+const fetchFeaturedProducts = async () => {
+  try {
+    isLoadingProducts.value = true
+    productsError.value = null
+    const response = await productsApi.listProducts({ page: 1, per_page: 4 })
+    featuredProducts.value = response.data || []
+  } catch (error) {
+    console.error('Error fetching featured products:', error)
+    productsError.value = 'Không thể tải sản phẩm nổi bật'
+    // Fallback data
+    featuredProducts.value = []
+  } finally {
+    isLoadingProducts.value = false
+  }
+}
 
 const commitments = ref([
   {
@@ -257,16 +258,16 @@ const goToCategory = (slug) => {
   router.push(`/products/category/${slug}`)
 }
 
-const formatPrice = (price) => {
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND'
-  }).format(price)
-}
 
 const addToCart = (product) => {
   console.log('Aproduct', product)
 }
+
+// Load data when component mounts
+onMounted(() => {
+  fetchCategories()
+  fetchFeaturedProducts()
+})
 </script>
 
 <style scoped>

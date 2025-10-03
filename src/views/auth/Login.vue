@@ -115,9 +115,13 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { login } from '@/api/auth'
+import { useAuth } from '@/composables/useAuth'
 
 const router = useRouter()
+const route = useRoute()
+const { setAuth } = useAuth()
 
 const form = ref({
   email: '',
@@ -129,8 +133,51 @@ const loading = ref(false)
 const error = ref('')
 
 const handleLogin = async () => {
-  localStorage.setItem('authToken', 'mock-jwt-token')
-  router.push('/')
+  if (!form.value.email || !form.value.password) {
+    error.value = 'Vui lòng nhập đầy đủ email và mật khẩu'
+    return
+  }
+
+  loading.value = true
+  error.value = ''
+
+  try {
+    const response = await login({
+      email: form.value.email,
+      password: form.value.password,
+      remember: form.value.remember
+    })
+
+    // Xử lý response với cấu trúc { success, message, data: { user, token } }
+    if (response.success && response.data) {
+      // Sử dụng setAuth để cập nhật trạng thái authentication
+      setAuth(response.data.user, response.data.token)
+
+      // Hiển thị thông báo thành công (tùy chọn)
+      console.log('Login success:', response.message)
+
+      // Điều hướng dựa trên redirect query hoặc quyền admin
+      const redirectPath = route.query.redirect
+      
+      if (redirectPath) {
+        // Nếu có redirect query, điều hướng đến đó
+        router.push(redirectPath)
+      } else if (response.data.user.is_admin) {
+        // Nếu là admin và không có redirect, điều hướng đến admin
+        router.push('/admin')
+      } else {
+        // Nếu là user thường, điều hướng về trang chủ
+        router.push('/')
+      }
+    } else {
+      error.value = response.message || 'Đăng nhập thất bại'
+    }
+  } catch (err) {
+    console.error('Login error:', err)
+    error.value = err.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.'
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 

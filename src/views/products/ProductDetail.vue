@@ -44,6 +44,7 @@
               :src="selectedImage"
               :alt="product.name"
               class="w-full h-96 object-cover rounded-lg shadow-lg"
+              @error="handleImageError"
             />
             <button
               v-if="product.images && product.images.length > 1"
@@ -58,13 +59,13 @@
             <button
               v-for="(image, index) in product.images"
               :key="index"
-              @click="selectedImage = image"
+              @click="selectedImage = getImageUrl(image.url)"
               :class="[
                 'flex-shrink-0 w-16 h-16 rounded-lg border-2 overflow-hidden transition-all',
-                selectedImage === image ? 'border-green-600' : 'border-gray-300 hover:border-gray-400'
+                selectedImage === getImageUrl(image.url) ? 'border-green-600' : 'border-gray-300 hover:border-gray-400'
               ]"
             >
-              <img :src="image" :alt="`${product.name} ${index + 1}`" class="w-full h-full object-cover" />
+              <img :src="getImageUrl(image.url)" :alt="`${product.name} ${index + 1}`" class="w-full h-full object-cover" @error="handleImageError" />
             </button>
           </div>
         </div>
@@ -206,8 +207,10 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { useProductImage } from '@/composables/useProductImage'
 
 const route = useRoute()
+const { getImageUrl, getAllImages, formatPrice, handleImageError } = useProductImage()
 
 const loading = ref(true)
 const product = ref(null)
@@ -256,12 +259,6 @@ const getCertificationLabel = (cert) => {
   return labels[cert] || cert
 }
 
-const formatPrice = (price) => {
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND'
-  }).format(price)
-}
 
 const formatDate = (date) => {
   return new Intl.DateTimeFormat('vi-VN', {
@@ -296,7 +293,11 @@ const toggleWishlist = () => {
 onMounted(async () => {
   setTimeout(() => {
     product.value = mockProduct
-    selectedImage.value = product.value.images[0]
+    // Set selected image to primary image or first image
+    if (product.value.images && product.value.images.length > 0) {
+      const primaryImage = product.value.images.find(img => img.is_primary)
+      selectedImage.value = getImageUrl(primaryImage ? primaryImage.url : product.value.images[0].url)
+    }
 
     relatedProducts.value = [
       {
