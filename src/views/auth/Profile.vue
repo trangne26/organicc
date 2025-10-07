@@ -115,7 +115,29 @@
           </div>
           <div v-if="activeTab === 'orders'" class="bg-white rounded-lg shadow-md p-6">
             <h2 class="text-xl font-semibold text-gray-800 mb-6">Lịch sử đơn hàng</h2>
-            <div v-if="orders.length === 0" class="text-center py-8">
+            
+            <!-- Loading state -->
+            <div v-if="loadingOrders" class="text-center py-8">
+              <div class="text-4xl text-gray-400 mb-4">⏳</div>
+              <h3 class="text-lg font-semibold text-gray-600 mb-2">Đang tải...</h3>
+              <p class="text-gray-500">Vui lòng chờ trong giây lát</p>
+            </div>
+            
+            <!-- Error state -->
+            <div v-else-if="ordersError" class="text-center py-8">
+              <div class="text-4xl text-red-400 mb-4">❌</div>
+              <h3 class="text-lg font-semibold text-red-600 mb-2">Lỗi tải dữ liệu</h3>
+              <p class="text-red-500 mb-4">{{ ordersError }}</p>
+              <button 
+                @click="fetchOrders"
+                class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+              >
+                Thử lại
+              </button>
+            </div>
+            
+            <!-- Empty state -->
+            <div v-else-if="orders.length === 0" class="text-center py-8">
               <div class="text-4xl text-gray-400 mb-4">📦</div>
               <h3 class="text-lg font-semibold text-gray-600 mb-2">Chưa có đơn hàng nào</h3>
               <p class="text-gray-500 mb-4">Bạn chưa thực hiện đơn hàng nào</p>
@@ -133,7 +155,7 @@
                 <div class="flex items-center justify-between mb-4">
                   <div>
                     <h3 class="font-semibold text-gray-800">Đơn hàng #{{ order.id }}</h3>
-                    <p class="text-sm text-gray-600">{{ formatDate(order.createdAt) }}</p>
+                    <p class="text-sm text-gray-600">{{ formatDate(new Date(order.created_at)) }}</p>
                   </div>
                   <div class="text-right">
                     <span
@@ -145,22 +167,22 @@
                       {{ getOrderStatusText(order.status) }}
                     </span>
                     <div class="text-lg font-bold text-orange-500 mt-1">
-                      {{ formatPrice(order.total) }}
+                      {{ formatPrice(parseFloat(order.total)) }}
                     </div>
                   </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                   <div>
                     <span class="font-medium text-gray-700">Sản phẩm:</span>
-                    <span class="text-gray-600 ml-1">{{ order.itemCount }} sản phẩm</span>
+                    <span class="text-gray-600 ml-1">{{ order.items.length }} sản phẩm</span>
                   </div>
                   <div>
                     <span class="font-medium text-gray-700">Thanh toán:</span>
-                    <span class="text-gray-600 ml-1">{{ getPaymentMethodText(order.paymentMethod) }}</span>
+                    <span class="text-gray-600 ml-1">{{ getPaymentMethodText(order) }}</span>
                   </div>
                   <div>
                     <span class="font-medium text-gray-700">Giao hàng:</span>
-                    <span class="text-gray-600 ml-1">{{ getDeliveryMethodText(order.deliveryMethod) }}</span>
+                    <span class="text-gray-600 ml-1">{{ getDeliveryMethodText(order) }}</span>
                   </div>
                 </div>
                 <div class="flex justify-end mt-4 space-x-2">
@@ -171,64 +193,11 @@
                     Xem chi tiết
                   </button>
                   <button
-                    v-if="order.status === 'delivered'"
+                    v-if="order.status === 'delivered' || order.status === 'shipped'"
                     @click="reorder(order.id)"
                     class="text-blue-600 hover:text-blue-700 font-medium text-sm"
                   >
                     Mua lại
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div v-if="activeTab === 'wishlist'" class="bg-white rounded-lg shadow-md p-6">
-            <h2 class="text-xl font-semibold text-gray-800 mb-6">Sản phẩm yêu thích</h2>
-            <div v-if="wishlist.length === 0" class="text-center py-8">
-              <div class="text-4xl text-gray-400 mb-4">💝</div>
-              <h3 class="text-lg font-semibold text-gray-600 mb-2">Chưa có sản phẩm yêu thích</h3>
-              <p class="text-gray-500 mb-4">Thêm sản phẩm vào danh sách yêu thích để mua sau</p>
-              <router-link
-                to="/products"
-                class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
-              >
-                Khám phá sản phẩm
-              </router-link>
-            </div>
-            <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div
-                v-for="item in wishlist"
-                :key="item.id"
-                class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-              >
-                <div class="relative">
-                  <router-link :to="`/product/${item.id}`">
-                    <img
-                      :src="item.image"
-                      :alt="item.name"
-                      class="w-full h-32 object-cover rounded-lg mb-3"
-                    />
-                  </router-link>
-                  <button
-                    @click="removeFromWishlist(item.id)"
-                    class="absolute top-2 right-2 bg-white bg-opacity-80 hover:bg-opacity-100 p-1 rounded-full text-red-500 hover:text-red-700 transition-colors"
-                  >
-                    ❌
-                  </button>
-                </div>
-                <router-link :to="`/product/${item.id}`">
-                  <h3 class="font-semibold text-gray-800 mb-2 hover:text-green-600 transition-colors">
-                    {{ item.name }}
-                  </h3>
-                </router-link>
-                <div class="flex items-center justify-between">
-                  <span class="text-lg font-bold text-orange-500">
-                    {{ formatPrice(item.price) }}
-                  </span>
-                  <button
-                    @click="addToCart(item)"
-                    class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm font-medium transition-colors"
-                  >
-                    Thêm vào giỏ
                   </button>
                 </div>
               </div>
@@ -293,8 +262,9 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { listOrders } from '@/api/orders'
 
 const router = useRouter()
 
@@ -303,11 +273,13 @@ const updating = ref(false)
 const changingPassword = ref(false)
 const passwordError = ref('')
 const passwordSuccess = ref('')
+const orders = ref([])
+const loadingOrders = ref(false)
+const ordersError = ref('')
 
 const tabs = [
   { id: 'info', name: 'Thông tin cá nhân', icon: '👤' },
   { id: 'orders', name: 'Lịch sử đơn hàng', icon: '📦' },
-  { id: 'wishlist', name: 'Sản phẩm yêu thích', icon: '💝' },
   { id: 'password', name: 'Đổi mật khẩu', icon: '🔒' }
 ]
 
@@ -328,41 +300,30 @@ const passwordForm = ref({
   confirmPassword: ''
 })
 
-const orders = ref([
-  {
-    id: '2024001',
-    createdAt: new Date('2024-01-15'),
-    status: 'delivered',
-    total: 195000,
-    itemCount: 3,
-    paymentMethod: 'cod',
-    deliveryMethod: 'standard'
-  },
-  {
-    id: '2024002',
-    createdAt: new Date('2024-01-20'),
-    status: 'shipping',
-    total: 85000,
-    itemCount: 2,
-    paymentMethod: 'momo',
-    deliveryMethod: 'express'
+// Fetch orders from API
+const fetchOrders = async () => {
+  loadingOrders.value = true
+  ordersError.value = ''
+  
+  try {
+    const response = await listOrders()
+    if (response.success) {
+      orders.value = response.data
+    } else {
+      ordersError.value = 'Không thể tải danh sách đơn hàng'
+    }
+  } catch (error) {
+    console.error('Error fetching orders:', error)
+    ordersError.value = 'Có lỗi xảy ra khi tải danh sách đơn hàng'
+  } finally {
+    loadingOrders.value = false
   }
-])
+}
 
-const wishlist = ref([
-  {
-    id: 1,
-    name: 'Rau cải xanh hữu cơ',
-    price: 25000,
-    image: '/images/products/cai-xanh.jpg'
-  },
-  {
-    id: 2,
-    name: 'Táo Fuji hữu cơ',
-    price: 45000,
-    image: '/images/products/tao-fuji.jpg'
-  }
-])
+// Load orders when component mounts
+onMounted(() => {
+  fetchOrders()
+})
 
 const formatPrice = (price) => {
   return new Intl.NumberFormat('vi-VN', {
@@ -383,7 +344,9 @@ const getOrderStatusClass = (status) => {
   const classes = {
     pending: 'bg-yellow-100 text-yellow-800',
     confirmed: 'bg-blue-100 text-blue-800',
+    paid: 'bg-blue-100 text-blue-800',
     shipping: 'bg-purple-100 text-purple-800',
+    shipped: 'bg-purple-100 text-purple-800',
     delivered: 'bg-green-100 text-green-800',
     cancelled: 'bg-red-100 text-red-800'
   }
@@ -394,30 +357,39 @@ const getOrderStatusText = (status) => {
   const texts = {
     pending: 'Chờ xác nhận',
     confirmed: 'Đã xác nhận',
+    paid: 'Đã thanh toán',
     shipping: 'Đang giao hàng',
+    shipped: 'Đã gửi hàng',
     delivered: 'Đã giao hàng',
     cancelled: 'Đã hủy'
   }
   return texts[status] || 'Không xác định'
 }
 
-const getPaymentMethodText = (method) => {
-  const texts = {
-    cod: 'Tiền mặt',
-    bank_transfer: 'Chuyển khoản',
-    momo: 'MoMo',
-    zalopay: 'ZaloPay'
+const getPaymentMethodText = (order) => {
+  if (order.payments && order.payments.length > 0) {
+    const method = order.payments[0].method
+    const texts = {
+      COD: 'Tiền mặt',
+      VNPAY: 'VNPay',
+      MOMO: 'MoMo',
+      ZALOPAY: 'ZaloPay',
+      BANK_TRANSFER: 'Chuyển khoản'
+    }
+    return texts[method] || method
   }
-  return texts[method] || method
+  return 'Chưa thanh toán'
 }
 
-const getDeliveryMethodText = (method) => {
-  const texts = {
-    standard: 'Tiêu chuẩn',
-    express: 'Nhanh',
-    pickup: 'Tự lấy'
+const getDeliveryMethodText = (order) => {
+  if (order.shipments && order.shipments.length > 0) {
+    const shipment = order.shipments[0]
+    if (shipment.provider) {
+      return shipment.provider
+    }
+    return shipment.status === 'delivered' ? 'Đã giao hàng' : 'Chưa giao hàng'
   }
-  return texts[method] || method
+  return 'Chưa giao hàng'
 }
 
 const updateProfile = async () => {
@@ -443,13 +415,6 @@ const viewOrderDetail = (orderId) => {
 }
 
 const reorder = (orderId) => {
-}
-
-const removeFromWishlist = (itemId) => {
-  const index = wishlist.value.findIndex(item => item.id === itemId)
-  if (index > -1) {
-    wishlist.value.splice(index, 1)
-  }
 }
 
 const addToCart = (item) => {
