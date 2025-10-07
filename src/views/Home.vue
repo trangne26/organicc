@@ -133,7 +133,7 @@
                 </span>
                 <button
                   class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-semibold transition-colors"
-                  @click="addToCart(product)"
+                  @click="handleAddToCart(product)"
                 >
                   Thêm vào giỏ
                 </button>
@@ -181,9 +181,13 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { categoriesApi, productsApi } from '@/api'
 import { useProductImage } from '@/composables/useProductImage'
+import { useCart } from '@/composables/useCart'
+import { useNotification } from '@/composables/useNotification'
 
 const router = useRouter()
 const { getPrimaryImage, formatPrice, handleImageError } = useProductImage()
+const { addToCart } = useCart()
+const { showSuccess, showError } = useNotification()
 
 // Reactive data
 const categories = ref([])
@@ -259,8 +263,13 @@ const goToCategory = (slug) => {
 }
 
 
-const addToCart = (product) => {
-  console.log('Aproduct', product)
+const handleAddToCart = (product) => {
+  const result = addToCart(product, 1)
+  if (result.success) {
+    showSuccess(result.message)
+  } else {
+    showError('Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng')
+  }
 }
 
 // Load data when component mounts

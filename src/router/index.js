@@ -9,6 +9,7 @@ import ProductList from '@/views/products/ProductList.vue'
 import ProductDetail from '@/views/products/ProductDetail.vue'
 import Cart from '@/views/Cart.vue'
 import Checkout from '@/views/Checkout.vue'
+import OrderSuccess from '@/views/OrderSuccess.vue'
 
 import Login from '@/views/auth/Login.vue'
 import Register from '@/views/auth/Register.vue'
@@ -79,6 +80,14 @@ const routes = [
         meta: {
           title: 'Thanh toán - Thực phẩm hữu cơ',
           requiresAuth: true
+        }
+      },
+      {
+        path: 'order-success',
+        name: 'OrderSuccess',
+        component: OrderSuccess,
+        meta: {
+          title: 'Đặt hàng thành công - Thực phẩm hữu cơ'
         }
       },
       {

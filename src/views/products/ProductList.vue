@@ -140,7 +140,7 @@
                   </div>
                   <button
                     class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-semibold transition-colors"
-                    @click="addToCart(product)"
+                    @click="handleAddToCart(product)"
                   >
                     Thêm vào giỏ
                   </button>
@@ -177,9 +177,13 @@ import { useRoute } from 'vue-router'
 import { listProducts } from '@/api/products'
 import { useProductImage } from '@/composables/useProductImage'
 import { listCategories } from '@/api/categories'
+import { useCart } from '@/composables/useCart'
+import { useNotification } from '@/composables/useNotification'
 
 const route = useRoute()
 const { getPrimaryImage, formatPrice, handleImageError } = useProductImage()
+const { addToCart } = useCart()
+const { showSuccess, showError } = useNotification()
 
 const loading = ref(true)
 const currentPage = ref(1)
@@ -277,8 +281,13 @@ const goToPage = (page) => {
 }
 
 
-const addToCart = (product) => {
-  // TODO: Implement add to cart functionality
+const handleAddToCart = (product) => {
+  const result = addToCart(product, 1)
+  if (result.success) {
+    showSuccess(result.message)
+  } else {
+    showError('Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng')
+  }
 }
 
 // Watch for route changes

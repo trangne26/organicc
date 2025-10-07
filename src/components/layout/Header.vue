@@ -107,10 +107,10 @@
             <div class="relative">
               <span class="text-xl">🛒</span>
               <span
-                v-if="Soluongsp > 0"
+                v-if="getItemCount > 0"
                 class="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold"
               >
-                {{ Soluongsp }}
+                {{ getItemCount }}
               </span>
             </div>
             <span class="hidden sm:inline">Giỏ hàng</span>
@@ -301,18 +301,18 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
+import { useCart } from '@/composables/useCart'
 import { categoriesApi } from '@/api'
 
 const router = useRouter()
 const { isLoggedIn, userName, isAdmin, logout: authLogout } = useAuth()
+const { getItemCount } = useCart()
 
 const Tukhoa = ref('')
 const Dangmomenu = ref(false)
 const Modanhmuc = ref(false)
 const mobileMenuOpen = ref(false)
 const mobileModanhmuc = ref(false)
-
-const Soluongsp = ref(3)
 
 // Categories data
 const Danhmuc = ref([])

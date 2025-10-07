@@ -178,11 +178,11 @@ const startCreate = () => {
 const edit = (p) => {
   editingId.value = p.id
   form.value = { 
-    category_id: p.category_id || '', 
+    category_id: p.category?.id || '', 
     name: p.name, 
     price: p.price, 
     description: p.description || '', 
-    is_active: p.is_active ?? 1, 
+    is_active: p.is_active ? 1 : 0, 
     primary_image_index: 0 
   }
   uploadedFiles = []

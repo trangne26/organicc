@@ -20,7 +20,7 @@ export const createProduct = (payload, config = {}) => {
 export const updateProduct = (id, payload, config = {}) => {
   // If payload is FormData, set proper headers
   if (payload instanceof FormData) {
-    return http.put(`${base}/${id}`, payload, {
+    return http.post(`${base}/${id}/update`, payload, {
       headers: {
         'Content-Type': 'multipart/form-data'
       },

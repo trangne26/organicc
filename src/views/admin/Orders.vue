@@ -20,10 +20,11 @@
             <td class="px-3 py-2">{{ o.status }}</td>
             <td class="px-3 py-2 text-right space-x-2">
               <select v-model="o.status" class="border rounded px-2 py-1" @change="updateStatus(o)">
-                <option value="pending">pending</option>
-                <option value="processing">processing</option>
-                <option value="completed">completed</option>
-                <option value="cancelled">cancelled</option>
+                <option value="pending">Chờ xử lý</option>
+                <option value="paid">Đã thanh toán</option>
+                <option value="shipped">Đã gửi hàng</option>
+                <option value="delivered">Đã giao hàng</option>
+                <option value="cancelled">Đã hủy</option>
               </select>
             </td>
           </tr>

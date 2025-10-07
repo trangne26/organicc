@@ -41,9 +41,10 @@
               >
                 <router-link :to="`/product/${item.id}`" class="flex-shrink-0">
                   <img
-                      :src="item.image"
+                      :src="getPrimaryImage(item)"
                       :alt="item.name"
                       class="w-20 h-20 object-cover rounded-lg"
+                      @error="handleImageError"
                   />
                 </router-link>
 
@@ -134,40 +135,11 @@
                 </span>
               </div>
 
-              <div v-if="discount > 0" class="flex justify-between text-green-600">
-                <span>Giảm giá:</span>
-                <span class="font-semibold">-{{ formatPrice(discount) }}</span>
-              </div>
-
               <hr class="border-gray-200" />
 
               <div class="flex justify-between text-lg font-bold">
                 <span>Tổng cộng:</span>
                 <span class="text-orange-500">{{ formatPrice(total) }}</span>
-              </div>
-
-              <div class="mt-6">
-                <div class="flex space-x-2">
-                  <input
-                      v-model="promoCode"
-                      type="text"
-                      placeholder="Mã giảm giá"
-                      class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  />
-                  <button
-                      @click="applyPromoCode"
-                      :disabled="!promoCode.trim() || applyingPromo"
-                      class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {{ applyingPromo ? 'Đang áp dụng...' : 'Áp dụng' }}
-                  </button>
-                </div>
-                <p v-if="promoMessage" :class="[
-                  'text-sm mt-2',
-                  promoMessage.type === 'success' ? 'text-green-600' : 'text-red-600'
-                ]">
-                  {{ promoMessage.text }}
-                </p>
               </div>
 
               <button
@@ -193,43 +165,17 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useCart } from '@/composables/useCart'
+import { useProductImage } from '@/composables/useProductImage'
 
 const router = useRouter()
+const { cartItems, updateQuantity, removeFromCart, formatPrice } = useCart()
+const { handleImageError, getPrimaryImage } = useProductImage()
 
 const promoCode = ref('')
 const applyingPromo = ref(false)
 const promoMessage = ref(null)
 const freeShippingThreshold = 200000
-
-const cartItems = ref([
-  {
-    id: 1,
-    name: 'Rau cải xanh hữu cơ',
-    description: 'Rau cải xanh tươi ngon, không thuốc trừ sâu',
-    price: 25000,
-    quantity: 2,
-    image: '/images/products/cai-xanh.jpg',
-    unit: 'bó'
-  },
-  {
-    id: 2,
-    name: 'Táo Fuji hữu cơ',
-    description: 'Táo Fuji ngọt ngào, giòn tan',
-    price: 45000,
-    quantity: 1,
-    image: '/images/products/tao-fuji.jpg',
-    unit: 'kg'
-  },
-  {
-    id: 3,
-    name: 'Mật ong rừng nguyên chất',
-    description: 'Mật ong rừng 100% nguyên chất',
-    price: 120000,
-    quantity: 1,
-    image: '/images/products/mat-ong.jpg',
-    unit: 'hũ'
-  }
-])
 
 const subtotal = computed(() => {
   return cartItems.value.reduce((total, item) => total + (item.price * item.quantity), 0)
@@ -239,78 +185,12 @@ const shippingFee = computed(() => {
   return subtotal.value >= freeShippingThreshold ? 0 : 30000
 })
 
-const discount = ref(0)
-
 const total = computed(() => {
-  return subtotal.value + shippingFee.value - discount.value
+  return subtotal.value + shippingFee.value
 })
 
-const formatPrice = (price) => {
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND'
-  }).format(price)
-}
-
-const updateQuantity = (itemId, newQuantity) => {
-  if (newQuantity < 1) return
-
-  const item = cartItems.value.find(item => item.id === itemId)
-  if (item) {
-    item.quantity = newQuantity
-  }
-}
-
 const removeItem = (itemId) => {
-  const index = cartItems.value.findIndex(item => item.id === itemId)
-  if (index > -1) {
-    cartItems.value.splice(index, 1)
-  }
-}
-
-const applyPromoCode = async () => {
-  if (!promoCode.value.trim()) return
-
-  applyingPromo.value = true
-  promoMessage.value = null
-
-  setTimeout(() => {
-    const promoCodes = {
-      'WELCOME10': { type: 'percentage', value: 10 },
-      'SAVE20K': { type: 'fixed', value: 20000 },
-      'FREESHIP': { type: 'freeship', value: 0 }
-    }
-
-    const promo = promoCodes[promoCode.value.toUpperCase()]
-
-    if (promo) {
-      if (promo.type === 'percentage') {
-        discount.value = Math.floor(subtotal.value * promo.value / 100)
-        promoMessage.value = {
-          type: 'success',
-          text: `Đã áp dụng mã giảm giá ${promo.value}%`
-        }
-      } else if (promo.type === 'fixed') {
-        discount.value = promo.value
-        promoMessage.value = {
-          type: 'success',
-          text: `Đã áp dụng mã giảm ${formatPrice(promo.value)}`
-        }
-      } else if (promo.type === 'freeship') {
-        promoMessage.value = {
-          type: 'success',
-          text: 'Đã áp dụng mã miễn phí vận chuyển'
-        }
-      }
-    } else {
-      promoMessage.value = {
-        type: 'error',
-        text: 'Mã giảm giá không hợp lệ'
-      }
-    }
-
-    applyingPromo.value = false
-  }, 1000)
+  removeFromCart(itemId)
 }
 
 const goToCheckout = () => {

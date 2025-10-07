@@ -11,7 +11,20 @@
       </div>
     </section>
     <div class="container mx-auto px-4 py-8">
-      <div class="mb-8">
+      <!-- Empty cart message -->
+      <div v-if="isCartEmpty" class="text-center py-12">
+        <div class="text-6xl mb-4">🛒</div>
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Giỏ hàng trống</h2>
+        <p class="text-gray-600 mb-6">Bạn chưa có sản phẩm nào trong giỏ hàng</p>
+        <router-link 
+          to="/products" 
+          class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+        >
+          Tiếp tục mua sắm
+        </router-link>
+      </div>
+      
+      <div v-else class="mb-8">
         <div class="flex items-center justify-center space-x-4 sm:space-x-8">
           <div v-for="(step, index) in checkoutSteps"
             :key="step.id"
@@ -97,34 +110,6 @@
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     placeholder="Số nhà, tên đường"
                   />
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Phường/Xã *
-                  </label>
-                  <select
-                    v-model="shippingInfo.ward"
-                    required
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  >
-                    <option value="">Chọn phường/xã</option>
-                    <option value="ward1">Phường 1</option>
-                    <option value="ward2">Phường 2</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Quận/Huyện *
-                  </label>
-                  <select
-                    v-model="shippingInfo.district"
-                    required
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  >
-                    <option value="">Chọn quận/huyện</option>
-                    <option value="district1">Quận 1</option>
-                    <option value="district3">Quận 3</option>
-                  </select>
                 </div>
                 <div class="md:col-span-2">
                   <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -265,7 +250,7 @@
                   class="flex items-center space-x-3"
                 >
                   <img
-                    :src="item.image"
+                    :src="getPrimaryImage(item)"
                     :alt="item.name"
                     class="w-12 h-12 object-cover rounded-lg"
                   />
@@ -312,10 +297,17 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useCart } from '@/composables/useCart'
+import { useAuth } from '@/composables/useAuth'
+import { useProductImage } from '@/composables/useProductImage'
+import { createOrder } from '@/api/orders'
 
 const router = useRouter()
+const { cartItems, clearCart } = useCart()
+const { user, isLoggedIn } = useAuth()
+const { getPrimaryImage } = useProductImage()
 
 const currentStep = ref(1)
 const processing = ref(false)
@@ -365,54 +357,29 @@ const deliveryMethods = [
 
 const paymentMethods = [
   {
-    id: 'cod',
+    id: 'COD',
     name: 'Thanh toán khi nhận hàng',
     description: 'Thanh toán bằng tiền mặt khi nhận hàng',
     icon: '💵'
   },
   {
-    id: 'bank_transfer',
-    name: 'Chuyển khoản ngân hàng',
-    description: 'Chuyển khoản qua số tài khoản',
-    icon: '🏦'
-  },
-  {
-    id: 'momo',
+    id: 'Momo',
     name: 'Ví MoMo',
     description: 'Thanh toán qua ví điện tử MoMo',
     icon: '📱'
   },
   {
-    id: 'zalopay',
+    id: 'VNPAY',
     name: 'ZaloPay',
     description: 'Thanh toán qua ví ZaloPay',
     icon: '💳'
   }
 ]
 
-const orderItems = ref([
-  {
-    id: 1,
-    name: 'Rau cải xanh hữu cơ',
-    price: 25000,
-    quantity: 2,
-    image: '/images/products/cai-xanh.jpg'
-  },
-  {
-    id: 2,
-    name: 'Táo Fuji hữu cơ',
-    price: 45000,
-    quantity: 1,
-    image: '/images/products/tao-fuji.jpg'
-  },
-  {
-    id: 3,
-    name: 'Mật ong rừng nguyên chất',
-    price: 120000,
-    quantity: 1,
-    image: '/images/products/mat-ong.jpg'
-  }
-])
+// Get order items from cart
+const orderItems = computed(() => {
+  return cartItems.value
+})
 
 const discount = ref(0)
 
@@ -448,29 +415,83 @@ const prevStep = () => {
   }
 }
 
+// Check if cart is empty
+const isCartEmpty = computed(() => {
+  return cartItems.value.length === 0
+})
+
+// Pre-fill user information and check cart on component mount
+onMounted(() => {
+  // Redirect to cart if empty
+  if (isCartEmpty.value) {
+    router.push('/cart')
+    return
+  }
+  
+  // Pre-fill user information if logged in
+  if (isLoggedIn.value && user.value) {
+    shippingInfo.value.fullName = user.value.name || ''
+    shippingInfo.value.email = user.value.email || ''
+    shippingInfo.value.phone = user.value.phone || ''
+    shippingInfo.value.address = user.value.address || ''
+  }
+})
+
 const processOrder = async () => {
   processing.value = true
 
-  setTimeout(() => {
-    const order = {
-      id: Date.now(),
-      items: orderItems.value,
-      shipping: shippingInfo.value,
-      delivery: deliveryMethod.value,
-      payment: paymentMethod.value,
-      subtotal: subtotal.value,
-      deliveryFee: selectedDeliveryFee.value,
-      discount: discount.value,
-      total: total.value,
-      status: 'pending',
-      createdAt: new Date()
+  try {
+    // Format order data according to the specified JSON structure
+    const orderData = {
+      items: orderItems.value.map(item => ({
+        product_id: item.id,
+        qty: item.quantity
+      })),
+      payment_method: paymentMethod.value,
+      shipping_name: shippingInfo.value.fullName,
+      shipping_phone: shippingInfo.value.phone,
+      shipping_address: shippingInfo.value.address,
+      notes: shippingInfo.value.notes || ''
     }
-    console.log('orderorder', order)
 
-    router.push('/order-success')
+    console.log('Order data:', orderData)
+
+    // Call the createOrder API
+    const response = await createOrder(orderData)
     
+    console.log('Order created successfully:', response)
+
+    // Clear cart after successful order
+    clearCart()
+    
+    // Redirect to success page with order data
+    router.push({
+      name: 'OrderSuccess',
+      query: {
+        orderData: JSON.stringify({
+          order_id: response.data?.id || Date.now(),
+          total: total.value,
+          subtotal: subtotal.value,
+          delivery_fee: selectedDeliveryFee.value,
+          discount: discount.value,
+          payment_method: paymentMethod.value,
+          shipping_info: shippingInfo.value,
+          delivery_method: deliveryMethod.value,
+          items: orderItems.value,
+          created_at: new Date().toISOString()
+        })
+      }
+    })
+    
+  } catch (error) {
+    console.error('Error creating order:', error)
+    
+    // Show error message to user
+    alert('Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.')
+    
+  } finally {
     processing.value = false
-  }, 2000)
+  }
 }
 </script>
 
