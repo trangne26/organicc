@@ -82,31 +82,6 @@
               {{ loading ? 'Đang đăng nhập...' : 'Đăng nhập' }}
             </button>
           </div>
-          <div class="mt-6">
-            <div class="relative">
-              <div class="absolute inset-0 flex items-center">
-                <div class="w-full border-t border-gray-300" />
-              </div>
-              <div class="relative flex justify-center text-sm">
-                <span class="px-2 bg-gray-50 text-gray-500">đăng nhập với</span>
-              </div>
-            </div>
-            <div class="mt-6 grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-              >
-                <span class="ml-2">Google</span>
-              </button>
-
-              <button
-                type="button"
-                class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-              >
-                <span class="ml-2">Facebook</span>
-              </button>
-            </div>
-          </div>
         </form>
       </div>
     </div>

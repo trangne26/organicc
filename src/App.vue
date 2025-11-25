@@ -6,8 +6,6 @@
 </template>
 
 <script setup>
-// App.vue now only contains router-view
-// Layout is handled by individual layout components (ClientLayout, AdminLayout)
 </script>
 
 <style>
