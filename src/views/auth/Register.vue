@@ -52,6 +52,18 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">
+                Địa chỉ
+              </label>
+              <input
+                v-model="form.address"
+                type="text"
+                required
+                class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
+                placeholder="Nhập địa chỉ"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">
                 Mật khẩu
               </label>
               <input
@@ -78,8 +90,13 @@
            <div v-if="error" class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
             {{ error }}
           </div>
-          <div v-if="success" class="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded">
-            {{ success }}
+          <div v-if="validationErrors && Object.keys(validationErrors).length > 0" class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
+            <ul class="list-disc list-inside space-y-1">
+              <li v-for="(errors, field) in validationErrors" :key="field">
+                <span class="font-medium">{{ getFieldLabel(field) }}:</span>
+                <span v-for="(err, index) in errors" :key="index">{{ err }}<span v-if="index < errors.length - 1">, </span></span>
+              </li>
+            </ul>
           </div>
           <div>
             <button
@@ -114,37 +131,95 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { register } from '@/api/auth'
+import { useAuth } from '@/composables/useAuth'
 
 const router = useRouter()
+const { setAuth } = useAuth()
 
 const form = ref({
   fullName: '',
   email: '',
   phone: '',
+  address: '',
   password: '',
   confirmPassword: ''
 })
 
 const loading = ref(false)
 const error = ref('')
-const success = ref('')
+const validationErrors = ref({})
 
 const isFormValid = computed(() => {
   return (
     form.value.fullName.trim() &&
     form.value.email.trim() &&
     form.value.phone.trim() &&
+    form.value.address.trim() &&
     form.value.password.length >= 6 &&
     form.value.password === form.value.confirmPassword
   )
 })
 
+const getFieldLabel = (field) => {
+  const labels = {
+    name: 'Họ và tên',
+    email: 'Email',
+    phone: 'Số điện thoại',
+    address: 'Địa chỉ',
+    password: 'Mật khẩu',
+    password_confirmation: 'Xác nhận mật khẩu'
+  }
+  return labels[field] || field
+}
+
 const handleRegister = async () => {
+  if (!isFormValid.value) {
+    error.value = 'Vui lòng điền đầy đủ thông tin và đảm bảo mật khẩu khớp nhau'
+    return
+  }
+
   loading.value = true
   error.value = ''
-  success.value = ''
+  validationErrors.value = {}
 
-  router.push('/login')
+  try {
+    const response = await register({
+      name: form.value.fullName,
+      email: form.value.email,
+      phone: form.value.phone,
+      address: form.value.address,
+      password: form.value.password,
+      password_confirmation: form.value.confirmPassword
+    })
+
+    // Xử lý response với cấu trúc { success, message, data: { user, token } }
+    if (response.success && response.data) {
+      // Sử dụng setAuth để cập nhật trạng thái authentication
+      setAuth(response.data.user, response.data.token)
+
+      // Điều hướng dựa trên quyền admin
+      if (response.data.user.is_admin) {
+        router.push('/admin')
+      } else {
+        router.push('/')
+      }
+    } else {
+      error.value = response.message || 'Đăng ký thất bại'
+    }
+  } catch (err) {
+    console.error('Register error:', err)
+    
+    // Xử lý validation errors từ API
+    if (err.payload?.errors) {
+      validationErrors.value = err.payload.errors
+    }
+    
+    // Hiển thị thông báo lỗi chung
+    error.value = err.message || err.payload?.message || 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.'
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
