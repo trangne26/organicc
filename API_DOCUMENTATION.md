@@ -200,6 +200,14 @@ GET /api/products
 - `page` (integer): Trang hiện tại (default: 1)
 - `per_page` (integer): Số items per page (default: 15, min: 1, max: 100)
 
+**Ví dụ:** lấy sản phẩm thuộc danh mục `1` và tên có chứa từ khóa "ra"
+
+```http
+GET /api/products?category_id=1&search=ra
+```
+
+Response trả về danh sách sản phẩm phù hợp với bộ lọc, đồng thời giữ nguyên cấu trúc pagination.
+
 **Response:**
 ```json
 {

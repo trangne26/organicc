@@ -274,13 +274,169 @@
         </main>
       </div>
     </div>
+    <div
+      v-if="showOrderDetail"
+      class="fixed inset-0 z-[60] flex items-start justify-center bg-black/40 px-4 py-10 overflow-y-auto"
+      @click.self="closeOrderDetail"
+    >
+      <div class="bg-white rounded-2xl shadow-xl w-full max-w-3xl relative">
+        <div class="flex items-start justify-between border-b border-gray-100 px-6 py-5">
+          <div>
+            <p class="text-sm text-gray-500">Đơn hàng</p>
+            <h3 class="text-2xl font-semibold text-gray-900">
+              #{{ selectedOrderId }}
+            </h3>
+          </div>
+          <div class="flex items-center gap-3">
+            <span
+              v-if="orderDetail"
+              :class="[
+                'px-3 py-1 rounded-full text-xs font-semibold',
+                getOrderStatusClass(orderDetail.status)
+              ]"
+            >
+              {{ getOrderStatusText(orderDetail.status) }}
+            </span>
+            <button
+              type="button"
+              class="text-gray-500 hover:text-gray-700 transition-colors"
+              @click="closeOrderDetail"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+        <div class="px-6 py-6">
+          <div v-if="loadingOrderDetail" class="text-center py-16 text-gray-500">
+            <div class="text-5xl mb-4">⏳</div>
+            Đang tải chi tiết đơn hàng...
+          </div>
+          <div v-else-if="orderDetailError" class="text-center py-16">
+            <div class="text-5xl text-red-400 mb-4">❌</div>
+            <p class="text-red-600 font-semibold mb-2">{{ orderDetailError }}</p>
+            <p class="text-gray-500 mb-6">Vui lòng thử lại sau ít phút.</p>
+            <button
+              type="button"
+              class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
+              @click="viewOrderDetail(selectedOrderId)"
+            >
+              Thử lại
+            </button>
+          </div>
+          <div v-else-if="orderDetail" class="space-y-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="rounded-xl border border-gray-100 p-4">
+                <p class="text-sm text-gray-500 mb-1">Ngày đặt</p>
+                <p class="font-semibold text-gray-900">
+                  {{
+                    orderDetail.created_at
+                      ? formatDate(new Date(orderDetail.created_at))
+                      : 'Không xác định'
+                  }}
+                </p>
+              </div>
+              <div class="rounded-xl border border-gray-100 p-4">
+                <p class="text-sm text-gray-500 mb-1">Tổng tiền</p>
+                <p class="font-semibold text-gray-900">
+                  {{ formatPrice(parseFloat(orderDetail.total) || 0) }}
+                </p>
+              </div>
+              <div class="rounded-xl border border-gray-100 p-4">
+                <p class="text-sm text-gray-500 mb-1">Thanh toán</p>
+                <p class="font-semibold text-gray-900">
+                  {{ getPaymentMethodText(orderDetail) }}
+                </p>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="rounded-2xl bg-gray-50 p-5">
+                <h4 class="text-base font-semibold text-gray-900 mb-3">Giao hàng</h4>
+                <dl class="space-y-2 text-sm text-gray-600">
+                  <div class="flex justify-between">
+                    <dt class="text-gray-500">Người nhận</dt>
+                    <dd class="font-medium text-gray-900">
+                      {{ orderDetail.shipping_name || 'Không có' }}
+                    </dd>
+                  </div>
+                  <div class="flex justify-between">
+                    <dt class="text-gray-500">Số điện thoại</dt>
+                    <dd class="font-medium text-gray-900">
+                      {{ orderDetail.shipping_phone || 'Không có' }}
+                    </dd>
+                  </div>
+                  <div class="flex justify-between">
+                    <dt class="text-gray-500">Địa chỉ</dt>
+                    <dd class="text-right font-medium text-gray-900 md:text-left">
+                      {{ orderDetail.shipping_address || 'Không có' }}
+                    </dd>
+                  </div>
+                  <div class="flex justify-between">
+                    <dt class="text-gray-500">Đơn vị vận chuyển</dt>
+                    <dd class="font-medium text-gray-900">
+                      {{ getDeliveryMethodText(orderDetail) }}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+              <div class="rounded-2xl bg-gray-50 p-5">
+                <h4 class="text-base font-semibold text-gray-900 mb-3">Ghi chú</h4>
+                <p class="text-sm text-gray-600 whitespace-pre-line">
+                  {{ orderDetail.notes || 'Không có ghi chú cho đơn hàng này.' }}
+                </p>
+              </div>
+            </div>
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <h4 class="text-lg font-semibold text-gray-900">
+                  Sản phẩm ({{ orderDetail.items?.length || 0 }})
+                </h4>
+                <span class="text-sm text-gray-500">
+                  Tổng cộng {{ formatPrice(parseFloat(orderDetail.total) || 0) }}
+                </span>
+              </div>
+              <div class="rounded-2xl border border-gray-100 divide-y divide-gray-100">
+                <div
+                  v-for="item in orderDetail.items || []"
+                  :key="item.id"
+                  class="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4"
+                >
+                  <div>
+                    <p class="font-medium text-gray-900">
+                      {{ item.product?.name || 'Sản phẩm' }}
+                    </p>
+                    <p class="text-sm text-gray-500">
+                      {{ item.qty }} × {{ formatPrice(parseFloat(item.unit_price) || 0) }}
+                    </p>
+                  </div>
+                  <div class="text-right font-semibold text-gray-900">
+                    {{ formatPrice(parseFloat(item.line_total) || (parseFloat(item.unit_price) || 0) * (item.qty || 0)) }}
+                  </div>
+                </div>
+                <div v-if="!orderDetail.items || orderDetail.items.length === 0" class="p-6 text-center text-gray-500">
+                  Không có sản phẩm trong đơn hàng.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 border-t border-gray-100 px-6 py-4">
+          <button
+            type="button"
+            class="px-5 py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+            @click="closeOrderDetail"
+          >
+            Đóng
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { listOrders } from '@/api/orders'
+import { listOrders, getOrder } from '@/api/orders'
 import { me, updateProfile as updateProfileApi, changePassword as changePasswordApi } from '@/api/auth'
 import { useAuth } from '@/composables/useAuth'
 import { useNotification } from '@/composables/useNotification'
@@ -299,6 +455,11 @@ const loadingOrders = ref(false)
 const ordersError = ref('')
 const loadingUser = ref(false)
 const userError = ref('')
+const showOrderDetail = ref(false)
+const loadingOrderDetail = ref(false)
+const orderDetailError = ref('')
+const selectedOrderId = ref(null)
+const orderDetail = ref(null)
 
 const tabs = [
   { id: 'info', name: 'Thông tin cá nhân', icon: '👤' },
@@ -542,7 +703,37 @@ const changePassword = async () => {
   }
 }
 
-const viewOrderDetail = (orderId) => {
+const viewOrderDetail = async (orderId) => {
+  if (!orderId) return
+  selectedOrderId.value = orderId
+  showOrderDetail.value = true
+  orderDetail.value = null
+  orderDetailError.value = ''
+  loadingOrderDetail.value = true
+
+  try {
+    const response = await getOrder(orderId)
+    if (response.success && response.data) {
+      orderDetail.value = response.data
+    } else {
+      orderDetailError.value = response.message || 'Không thể tải chi tiết đơn hàng'
+      showError(orderDetailError.value)
+    }
+  } catch (error) {
+    console.error('Error fetching order detail:', error)
+    const errorMessage = error.message || error.payload?.message || 'Có lỗi xảy ra khi tải chi tiết đơn hàng'
+    orderDetailError.value = errorMessage
+    showError(errorMessage)
+  } finally {
+    loadingOrderDetail.value = false
+  }
+}
+
+const closeOrderDetail = () => {
+  showOrderDetail.value = false
+  orderDetail.value = null
+  orderDetailError.value = ''
+  selectedOrderId.value = null
 }
 
 const reorder = (orderId) => {

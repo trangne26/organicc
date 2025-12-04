@@ -5,39 +5,85 @@
       <button class="px-3 py-2 bg-green-600 text-white rounded" @click="startCreate">Thêm sản phẩm</button>
     </div>
 
+    <div class="bg-white border rounded p-4 mb-4 grid gap-4 md:grid-cols-3">
+      <label class="block">
+        <span class="text-sm text-gray-600">Tìm kiếm theo tên</span>
+        <input 
+          v-model="searchTerm" 
+          type="text"
+          placeholder="Nhập tên sản phẩm..."
+          class="mt-1 w-full border rounded px-3 py-2"
+        />
+      </label>
+      <label class="block">
+        <span class="text-sm text-gray-600">Lọc theo danh mục</span>
+        <select 
+          v-model="selectedCategory"
+          class="mt-1 w-full border rounded px-3 py-2"
+        >
+          <option value="">Tất cả</option>
+          <option 
+            v-for="category in categories" 
+            :key="category.id" 
+            :value="category.id"
+          >
+            {{ category.name }}
+          </option>
+        </select>
+      </label>
+      <div class="flex items-end">
+        <button 
+          type="button" 
+          class="px-3 py-2 bg-gray-100 border border-gray-200 rounded text-sm text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          @click="resetFilters"
+          :disabled="!searchTerm && !selectedCategory"
+        >
+          Xóa bộ lọc
+        </button>
+      </div>
+    </div>
+
     <div class="overflow-x-auto bg-white border rounded">
-      <table class="min-w-full text-sm">
-        <thead class="bg-gray-50">
-          <tr>
-            <th class="text-left px-3 py-2">ID</th>
-            <th class="text-left px-3 py-2">Ảnh</th>
-            <th class="text-left px-3 py-2">Tên</th>
-            <th class="text-left px-3 py-2">Giá</th>
-            <th class="text-left px-3 py-2">Danh mục</th>
-            <th class="text-left px-3 py-2"></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="p in items" :key="p.id" class="border-t">
-            <td class="px-3 py-2">{{ p.id }}</td>
-            <td class="px-3 py-2">
-              <img 
-                :src="getPrimaryImage(p)" 
-                :alt="p.name"
-                class="w-12 h-12 object-cover rounded"
-                @error="handleImageError"
-              />
-            </td>
-            <td class="px-3 py-2">{{ p.name }}</td>
-            <td class="px-3 py-2">{{ formatPrice(p.price) }}</td>
-            <td class="px-3 py-2">{{ p.category?.name }}</td>
-            <td class="px-3 py-2 text-right space-x-2">
-              <button class="px-2 py-1 border rounded" @click="edit(p)">Sửa</button>
-              <button class="px-2 py-1 border rounded text-red-600" @click="requestDelete(p)">Xóa</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <template v-if="isLoadingProducts">
+        <div class="p-6 text-center text-sm text-gray-500">Đang tải sản phẩm...</div>
+      </template>
+      <template v-else-if="items.length">
+        <table class="min-w-full text-sm">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="text-left px-3 py-2">ID</th>
+              <th class="text-left px-3 py-2">Ảnh</th>
+              <th class="text-left px-3 py-2">Tên</th>
+              <th class="text-left px-3 py-2">Giá</th>
+              <th class="text-left px-3 py-2">Danh mục</th>
+              <th class="text-left px-3 py-2"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="p in items" :key="p.id" class="border-t">
+              <td class="px-3 py-2">{{ p.id }}</td>
+              <td class="px-3 py-2">
+                <img 
+                  :src="getPrimaryImage(p)" 
+                  :alt="p.name"
+                  class="w-12 h-12 object-cover rounded"
+                  @error="handleImageError"
+                />
+              </td>
+              <td class="px-3 py-2">{{ p.name }}</td>
+              <td class="px-3 py-2">{{ formatPrice(p.price) }}</td>
+              <td class="px-3 py-2">{{ p.category?.name }}</td>
+              <td class="px-3 py-2 text-right space-x-2">
+                <button class="px-2 py-1 border rounded" @click="edit(p)">Sửa</button>
+                <button class="px-2 py-1 border rounded text-red-600" @click="requestDelete(p)">Xóa</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </template>
+      <div v-else class="p-6 text-center text-sm text-gray-500">
+        Không tìm thấy sản phẩm phù hợp.
+      </div>
     </div>
 
     <div 
@@ -206,13 +252,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick, watch } from 'vue'
 import { productsApi, categoriesApi } from '@/api'
 import { useProductImage } from '@/composables/useProductImage'
 
 const { getPrimaryImage, getImageUrl, formatPrice, handleImageError } = useProductImage()
 
 const items = ref([])
+const isLoadingProducts = ref(false)
 const categories = ref([])
 const showForm = ref(false)
 const editingId = ref(null)
@@ -234,12 +281,29 @@ const form = ref({
 const uploadedFiles = ref([])
 const uploadedFilesCount = ref(0)
 const formSectionRef = ref(null)
+const searchTerm = ref('')
+const selectedCategory = ref('')
+const filtersInitialized = ref(false)
+let searchDebounceTimeout
 
 const load = async () => {
+  const params = {}
+  if (searchTerm.value.trim()) {
+    params.search = searchTerm.value.trim()
+  }
+  if (selectedCategory.value) {
+    params.category_id = selectedCategory.value
+  }
+
+  isLoadingProducts.value = true
+
   try {
-    const res = await productsApi.listProducts()
+    const res = await productsApi.listProducts(params)
     items.value = Array.isArray(res) ? res : (res?.data ?? [])
-  } catch (e) {}
+  } catch (e) {
+  } finally {
+    isLoadingProducts.value = false
+  }
 }
 
 const loadCategories = async () => {
@@ -252,6 +316,20 @@ const loadCategories = async () => {
 onMounted(() => {
   load()
   loadCategories()
+  filtersInitialized.value = true
+})
+
+watch(searchTerm, () => {
+  if (!filtersInitialized.value) return
+  if (searchDebounceTimeout) clearTimeout(searchDebounceTimeout)
+  searchDebounceTimeout = setTimeout(() => {
+    load()
+  }, 400)
+})
+
+watch(selectedCategory, () => {
+  if (!filtersInitialized.value) return
+  load()
 })
 
 const startCreate = () => {
@@ -365,6 +443,16 @@ const removeExistingImage = (index) => {
   }
 
   existingImages.value.splice(index, 1)
+}
+
+const resetFilters = () => {
+  searchTerm.value = ''
+  selectedCategory.value = ''
+  if (searchDebounceTimeout) {
+    clearTimeout(searchDebounceTimeout)
+    searchDebounceTimeout = null
+  }
+  load()
 }
 
 const save = async () => {
