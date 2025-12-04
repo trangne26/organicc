@@ -96,8 +96,10 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuth } from '@/composables/useAuth'
 
 const router = useRouter()
+const { logout: authLogout } = useAuth()
 const isAccountMenuOpen = ref(false)
 
 const toggleAccountMenu = () => {
@@ -108,8 +110,8 @@ const closeAccountMenu = () => {
   isAccountMenuOpen.value = false
 }
 
-const logout = () => {
-  localStorage.removeItem('authToken')
+const logout = async () => {
+  await authLogout()
   closeAccountMenu()
   router.push('/login')
 }
