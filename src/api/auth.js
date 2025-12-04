@@ -8,6 +8,8 @@ export const logout = () => http.post(`${base}/logout`)
 export const me = () => http.get(`${base}/me`)
 export const updateProfile = (payload) => http.put(`${base}/profile`, payload)
 export const changePassword = (payload) => http.put(`${base}/change-password`, payload)
+export const forgotPassword = (payload) => http.post(`${base}/forgot-password`, payload)
+export const resetPassword = (payload) => http.post(`${base}/reset-password`, payload)
 
 export default {
   login,
@@ -16,6 +18,8 @@ export default {
   me,
   updateProfile,
   changePassword,
+  forgotPassword,
+  resetPassword,
 }
 
 

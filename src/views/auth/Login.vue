@@ -50,9 +50,12 @@
               </label>
             </div>
             <div class="text-sm">
-              <a href="#" class="font-medium text-green-600 hover:text-green-500">
+              <router-link
+                to="/forgot-password"
+                class="font-medium text-green-600 hover:text-green-500"
+              >
                 Quên mật khẩu?
-              </a>
+              </router-link>
             </div>
           </div>
           <div v-if="error" class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">

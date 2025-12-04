@@ -14,6 +14,8 @@ import OrderSuccess from '@/views/OrderSuccess.vue'
 import Login from '@/views/auth/Login.vue'
 import Register from '@/views/auth/Register.vue'
 import Profile from '@/views/auth/Profile.vue'
+import ForgotPassword from '@/views/auth/ForgotPassword.vue'
+import ResetPassword from '@/views/auth/ResetPassword.vue'
 
 import Blog from '@/views/content/Blog.vue'
 import BlogPost from '@/views/content/BlogPost.vue'
@@ -106,6 +108,22 @@ const routes = [
         meta: {
           title: 'Đăng ký - Thực phẩm hữu cơ',
           hideForAuth: true
+        }
+      },
+      {
+        path: 'forgot-password',
+        name: 'ForgotPassword',
+        component: ForgotPassword,
+        meta: {
+          title: 'Quên mật khẩu - Thực phẩm hữu cơ'
+        }
+      },
+      {
+        path: 'reset-password',
+        name: 'ResetPassword',
+        component: ResetPassword,
+        meta: {
+          title: 'Đặt lại mật khẩu - Thực phẩm hữu cơ'
         }
       },
       {
