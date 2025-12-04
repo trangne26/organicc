@@ -123,7 +123,7 @@ const handleLogin = async () => {
     const response = await login({
       email: form.value.email,
       password: form.value.password,
-      remember: form.value.remember
+      remember_me: form.value.remember
     })
 
     // Xử lý response với cấu trúc { success, message, data: { user, token } }

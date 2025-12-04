@@ -30,10 +30,10 @@
               class="flex items-center space-x-3 text-gray-700 hover:text-green-600 transition-colors"
             >
               <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                <span class="text-green-600 font-semibold text-sm">A</span>
+                <span class="text-green-600 font-semibold text-sm">{{ userInitial }}</span>
               </div>
               <div class="hidden sm:block text-left">
-                <p class="text-sm font-medium text-gray-800">Admin User</p>
+                <p class="text-sm font-medium text-gray-800">{{ userName || 'Người dùng' }}</p>
                 <p class="text-xs text-gray-500">Quản trị viên</p>
               </div>
               <span class="text-sm text-gray-400">{{ isAccountMenuOpen ? '▲' : '▼' }}</span>
@@ -45,26 +45,17 @@
               class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50"
             >
               <div class="px-4 py-3 border-b border-gray-100">
-                <p class="text-sm font-medium text-gray-800">Admin User</p>
-                <p class="text-xs text-gray-500">admin@organicstore.vn</p>
+                <p class="text-sm font-medium text-gray-800">{{ userName || 'Người dùng' }}</p>
+                <p class="text-xs text-gray-500">{{ userEmail || 'Chưa có email' }}</p>
               </div>
               
               <router-link
-                to="/admin/profile"
+                to="/profile"
                 class="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                 @click="closeAccountMenu"
               >
                 <span class="text-lg">👤</span>
                 <span>Thông tin cá nhân</span>
-              </router-link>
-              
-              <router-link
-                to="/admin/settings"
-                class="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                @click="closeAccountMenu"
-              >
-                <span class="text-lg">⚙️</span>
-                <span>Cài đặt</span>
               </router-link>
               
               <hr class="my-2">
@@ -94,13 +85,21 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 
 const router = useRouter()
-const { logout: authLogout } = useAuth()
+const { user, userName, userEmail, logout: authLogout } = useAuth()
 const isAccountMenuOpen = ref(false)
+
+// Get first letter of user name for avatar
+const userInitial = computed(() => {
+  if (user.value?.name) {
+    return user.value.name.charAt(0).toUpperCase()
+  }
+  return 'A'
+})
 
 const toggleAccountMenu = () => {
   isAccountMenuOpen.value = !isAccountMenuOpen.value

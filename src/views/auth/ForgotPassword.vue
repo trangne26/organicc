@@ -1,7 +1,7 @@
 <template>
   <div class="forgot-password">
     <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div class="max-w-md w-full space-y-8">
+      <div class="max-w-md w-full space-y-8 relative z-10">
         <div>
           <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Quên mật khẩu?
@@ -21,16 +21,17 @@
         <form class="mt-8 space-y-6" @submit.prevent="handleSubmit">
           <div class="rounded-md shadow-sm">
             <div>
-              <label for="email" class="sr-only">Email</label>
+              <label for="email" class="sr-only">Email </label>
               <input
+                ref="emailInput"
                 id="email"
                 v-model="email"
                 type="email"
                 required
                 autocomplete="email"
-                class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
+                tabindex="1"
+                class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm bg-white"
                 placeholder="Địa chỉ email của bạn"
-                :disabled="loading || success"
               />
             </div>
           </div>
@@ -82,7 +83,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { forgotPassword } from '@/api/auth'
 import { useNotification } from '@/composables/useNotification'
 
@@ -92,6 +93,15 @@ const email = ref('')
 const loading = ref(false)
 const error = ref('')
 const success = ref('')
+const emailInput = ref(null)
+
+onMounted(() => {
+  nextTick(() => {
+    if (emailInput.value && !loading.value && !success.value) {
+      emailInput.value.focus()
+    }
+  })
+})
 
 const handleSubmit = async () => {
   if (!email.value) {
@@ -132,6 +142,16 @@ const handleResend = () => {
 <style scoped>
 .forgot-password {
   background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><radialGradient id="a" cx="50%" cy="50%"><stop offset="0%" stop-color="%23f0fdf4"/><stop offset="100%" stop-color="%23dcfce7"/></radialGradient></defs><rect width="100%" height="100%" fill="url(%23a)"/></svg>');
+}
+
+input[type="email"]:not(:disabled) {
+  cursor: text;
+  pointer-events: auto;
+  touch-action: manipulation;
+}
+
+input[type="email"]:disabled {
+  cursor: not-allowed;
 }
 </style>
 

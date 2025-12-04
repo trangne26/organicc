@@ -15,8 +15,12 @@
         <aside class="lg:col-span-1">
           <div class="bg-white rounded-lg shadow-md p-6">
             <div class="text-center mb-6">
-              <h3 class="font-semibold text-gray-800">{{ user.fullName }}</h3>
-              <p class="text-sm text-gray-600">{{ user.email }}</p>
+              <div v-if="loadingUser" class="text-gray-500">Đang tải...</div>
+              <div v-else-if="userError" class="text-red-500 text-sm">{{ userError }}</div>
+              <div v-else>
+                <h3 class="font-semibold text-gray-800">{{ user.fullName || 'Chưa có tên' }}</h3>
+                <p class="text-sm text-gray-600">{{ user.email || 'Chưa có email' }}</p>
+              </div>
             </div>
             <nav class="space-y-2">
               <button v-for="tab in tabs" :key="tab.id"
@@ -48,7 +52,29 @@
             <div class="mb-6">
               <h2 class="text-xl font-semibold text-gray-800">Thông tin cá nhân</h2>
             </div>
-            <form @submit.prevent="updateProfile" class="space-y-6">
+            
+            <!-- Loading state -->
+            <div v-if="loadingUser" class="text-center py-8">
+              <div class="text-4xl text-gray-400 mb-4">⏳</div>
+              <h3 class="text-lg font-semibold text-gray-600 mb-2">Đang tải thông tin...</h3>
+              <p class="text-gray-500">Vui lòng chờ trong giây lát</p>
+            </div>
+            
+            <!-- Error state -->
+            <div v-else-if="userError" class="text-center py-8">
+              <div class="text-4xl text-red-400 mb-4">❌</div>
+              <h3 class="text-lg font-semibold text-red-600 mb-2">Lỗi tải dữ liệu</h3>
+              <p class="text-red-500 mb-4">{{ userError }}</p>
+              <button 
+                @click="fetchUser"
+                class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+              >
+                Thử lại
+              </button>
+            </div>
+            
+            <!-- Form -->
+            <form v-else @submit.prevent="updateProfile" class="space-y-6">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -78,16 +104,6 @@
                   <input
                     v-model="profileForm.phone"
                     type="tel"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-50"
-                  />
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Ngày sinh
-                  </label>
-                  <input
-                    v-model="profileForm.birthDate"
-                    type="date"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-50"
                   />
                 </div>
@@ -265,8 +281,13 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { listOrders } from '@/api/orders'
+import { me, updateProfile as updateProfileApi, changePassword as changePasswordApi } from '@/api/auth'
+import { useAuth } from '@/composables/useAuth'
+import { useNotification } from '@/composables/useNotification'
 
 const router = useRouter()
+const { user: authUser, logout: logoutAuth } = useAuth()
+const { showSuccess, showError } = useNotification()
 
 const activeTab = ref('info')
 const updating = ref(false)
@@ -276,6 +297,8 @@ const passwordSuccess = ref('')
 const orders = ref([])
 const loadingOrders = ref(false)
 const ordersError = ref('')
+const loadingUser = ref(false)
+const userError = ref('')
 
 const tabs = [
   { id: 'info', name: 'Thông tin cá nhân', icon: '👤' },
@@ -284,21 +307,63 @@ const tabs = [
 ]
 
 const user = ref({
-  id: 1,
-  fullName: 'Nguyễn Văn An',
-  email: 'user@example.com',
-  phone: '0123456789',
-  birthDate: '1990-01-01',
-  address: '123 Đường ABC, Phường XYZ, Quận 1, TP.HCM'
+  id: null,
+  fullName: '',
+  email: '',
+  phone: '',
+  address: ''
 })
 
-const profileForm = reactive({ ...user.value })
+const profileForm = reactive({
+  fullName: '',
+  email: '',
+  phone: '',
+  address: ''
+})
 
 const passwordForm = ref({
   currentPassword: '',
   newPassword: '',
   confirmPassword: ''
 })
+
+// Fetch user data from API
+const fetchUser = async () => {
+  loadingUser.value = true
+  userError.value = ''
+  
+  try {
+    const response = await me()
+    if (response.success && response.data) {
+      const userData = response.data
+      // Map API response to user object
+      user.value = {
+        id: userData.id,
+        fullName: userData.name || '',
+        email: userData.email || '',
+        phone: userData.phone || '',
+        address: userData.address || ''
+      }
+      
+      // Update profileForm with user data
+      Object.assign(profileForm, {
+        fullName: user.value.fullName,
+        email: user.value.email,
+        phone: user.value.phone,
+        address: user.value.address
+      })
+    } else {
+      userError.value = 'Không thể tải thông tin tài khoản'
+      showError('Không thể tải thông tin tài khoản')
+    }
+  } catch (error) {
+    console.error('Error fetching user:', error)
+    userError.value = error.message || 'Có lỗi xảy ra khi tải thông tin tài khoản'
+    showError(userError.value)
+  } finally {
+    loadingUser.value = false
+  }
+}
 
 // Fetch orders from API
 const fetchOrders = async () => {
@@ -320,8 +385,9 @@ const fetchOrders = async () => {
   }
 }
 
-// Load orders when component mounts
+// Load data when component mounts
 onMounted(() => {
+  fetchUser()
   fetchOrders()
 })
 
@@ -394,21 +460,86 @@ const getDeliveryMethodText = (order) => {
 
 const updateProfile = async () => {
   updating.value = true
-
-  setTimeout(() => {
-    Object.assign(user.value, profileForm)
+  
+  try {
+    // Prepare payload according to API documentation
+    const payload = {
+      name: profileForm.fullName,
+      phone: profileForm.phone,
+      address: profileForm.address
+    }
+    
+    const response = await updateProfileApi(payload)
+    
+    if (response.success) {
+      // Update user data
+      const userData = response.data || {}
+      user.value = {
+        ...user.value,
+        fullName: userData.name || profileForm.fullName,
+        phone: userData.phone || profileForm.phone,
+        address: userData.address || profileForm.address
+      }
+      
+      showSuccess('Cập nhật thông tin thành công')
+    } else {
+      showError(response.message || 'Có lỗi xảy ra khi cập nhật thông tin')
+    }
+  } catch (error) {
+    console.error('Error updating profile:', error)
+    const errorMessage = error.message || error.payload?.message || 'Có lỗi xảy ra khi cập nhật thông tin'
+    showError(errorMessage)
+  } finally {
     updating.value = false
-  }, 1000)
+  }
 }
 
 const changePassword = async () => {
-  passwordSuccess.value = 'Mật khẩu đã được cập nhật thành công'
-  passwordForm.value = {
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
+  passwordError.value = ''
+  passwordSuccess.value = ''
+  
+  // Validation
+  if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
+    passwordError.value = 'Mật khẩu mới và xác nhận mật khẩu không khớp'
+    return
   }
-  changingPassword.value = false
+  
+  if (passwordForm.value.newPassword.length < 6) {
+    passwordError.value = 'Mật khẩu mới phải có ít nhất 6 ký tự'
+    return
+  }
+  
+  changingPassword.value = true
+  
+  try {
+    const payload = {
+      current_password: passwordForm.value.currentPassword,
+      password: passwordForm.value.newPassword,
+      password_confirmation: passwordForm.value.confirmPassword
+    }
+    
+    const response = await changePasswordApi(payload)
+    
+    if (response.success) {
+      passwordSuccess.value = 'Mật khẩu đã được cập nhật thành công'
+      passwordForm.value = {
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      }
+      showSuccess('Đổi mật khẩu thành công')
+    } else {
+      passwordError.value = response.message || 'Có lỗi xảy ra khi đổi mật khẩu'
+      showError(passwordError.value)
+    }
+  } catch (error) {
+    console.error('Error changing password:', error)
+    const errorMessage = error.message || error.payload?.message || 'Có lỗi xảy ra khi đổi mật khẩu'
+    passwordError.value = errorMessage
+    showError(errorMessage)
+  } finally {
+    changingPassword.value = false
+  }
 }
 
 const viewOrderDetail = (orderId) => {
@@ -420,9 +551,8 @@ const reorder = (orderId) => {
 const addToCart = (item) => {
 }
 
-const logout = () => {
-  localStorage.removeItem('authToken')
-
+const logout = async () => {
+  await logoutAuth()
   router.push('/')
 }
 </script>
