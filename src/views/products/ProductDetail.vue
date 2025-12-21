@@ -13,9 +13,9 @@
         </div>
       </div>
     </div>
-    <div v-else-if="!product" class="container mx-auto px-4 py-16 text-center">
+    <div v-else-if="error || !product" class="container mx-auto px-4 py-16 text-center">
       <div class="text-6xl text-gray-400 mb-4">😞</div>
-      <h2 class="text-2xl font-bold text-gray-600 mb-4">Không tìm thấy sản phẩm</h2>
+      <h2 class="text-2xl font-bold text-gray-600 mb-4">{{ error || 'Không tìm thấy sản phẩm' }}</h2>
       <router-link
         to="/products"
         class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
@@ -72,7 +72,7 @@
         <div class="space-y-6">
           <div>
             <h1 class="text-3xl font-bold text-gray-800 mb-2">{{ product.name }}</h1>
-            <p class="text-gray-600">{{ product.shortDescription }}</p>
+            <p v-if="product.shortDescription" class="text-gray-600">{{ product.shortDescription }}</p>
           </div>
           <div class="flex items-center space-x-4">
             <span
@@ -127,7 +127,7 @@
                   +
                 </button>
               </div>
-              <span class="text-sm text-gray-600">{{ product.unit }}</span>
+              <span v-if="product.unit" class="text-sm text-gray-600">{{ product.unit }}</span>
             </div>
             <div class="flex flex-col sm:flex-row gap-4">
               <button
@@ -151,34 +151,34 @@
               </button>
             </div>
           </div>
-          <div class="border-t border-gray-200 pt-6">
+          <div v-if="product.origin || product.weight || product.expiry || product.storage" class="border-t border-gray-200 pt-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-4">Thông tin sản phẩm</h3>
             <div class="grid grid-cols-2 gap-4 text-sm">
-              <div>
+              <div v-if="product.origin">
                 <span class="font-medium text-gray-700">Xuất xứ:</span>
-                <span class="text-gray-600 ml-2">{{ product.origin || 'Việt Nam' }}</span>
+                <span class="text-gray-600 ml-2">{{ product.origin }}</span>
               </div>
-              <div>
+              <div v-if="product.weight">
                 <span class="font-medium text-gray-700">Khối lượng:</span>
-                <span class="text-gray-600 ml-2">{{ product.weight || 'N/A' }}</span>
+                <span class="text-gray-600 ml-2">{{ product.weight }}</span>
               </div>
-              <div>
+              <div v-if="product.expiry">
                 <span class="font-medium text-gray-700">Hạn sử dụng:</span>
-                <span class="text-gray-600 ml-2">{{ product.expiry || 'N/A' }}</span>
+                <span class="text-gray-600 ml-2">{{ product.expiry }}</span>
               </div>
-              <div>
+              <div v-if="product.storage">
                 <span class="font-medium text-gray-700">Bảo quản:</span>
-                <span class="text-gray-600 ml-2">{{ product.storage || 'Nơi khô ráo, thoáng mát' }}</span>
+                <span class="text-gray-600 ml-2">{{ product.storage }}</span>
               </div>
             </div>
           </div>
         </div>
       </div>
-      <div class="mt-12 border-t border-gray-200 pt-8">
+      <div v-if="product.description" class="mt-12 border-t border-gray-200 pt-8">
         <h2 class="text-2xl font-bold text-gray-800 mb-6">Mô tả sản phẩm</h2>
         <div class="prose max-w-none text-gray-600" v-html="product.description"></div>
       </div>
-      <div class="mt-12 border-t border-gray-200 pt-8">
+      <div v-if="relatedProducts.length > 0" class="mt-12 border-t border-gray-200 pt-8">
         <h2 class="text-2xl font-bold text-gray-800 mb-6">Sản phẩm liên quan</h2>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div v-for="relatedProduct in relatedProducts" :key="relatedProduct.id" class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
@@ -187,6 +187,7 @@
               <img :src="relatedProduct.image"
                 :alt="relatedProduct.name"
                 class="w-full h-32 object-cover rounded-t-lg"
+                @error="handleImageError"
               />
               <div class="p-3">
                 <h3 class="text-sm font-semibold text-gray-800 mb-1 hover:text-green-600 transition-colors">
@@ -205,14 +206,20 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useProductImage } from '@/composables/useProductImage'
+import { getProduct, listProducts } from '@/api/products'
+import { useCart } from '@/composables/useCart'
+import { useNotification } from '@/composables/useNotification'
 
 const route = useRoute()
-const { getImageUrl, getAllImages, formatPrice, handleImageError } = useProductImage()
+const { getImageUrl, getAllImages, formatPrice, handleImageError, getPrimaryImage } = useProductImage()
+const { addToCart: addItemToCart } = useCart()
+const { showSuccess, showError } = useNotification()
 
 const loading = ref(true)
+const error = ref(null)
 const product = ref(null)
 const selectedImage = ref('')
 const quantity = ref(1)
@@ -220,34 +227,6 @@ const showImageModal = ref(false)
 const isInWishlist = ref(false)
 
 const relatedProducts = ref([])
-
-const mockProduct = {
-  id: 1,
-  name: 'Rau cải xanh hữu cơ',
-  shortDescription: 'Rau cải xanh tươi ngon, không thuốc trừ sâu',
-  description: `
-    <p>Rau cải xanh hữu cơ được trồng theo phương pháp canh tác hữu cơ, không sử dụng thuốc trừ sâu hay phân bón hóa học.</p>
-    <p>Sản phẩm giàu vitamin A, C, K và các khoáng chất thiết yếu, giúp tăng cường sức khỏe và hệ miễn dịch.</p>
-    <h4>Lợi ích:</h4>
-    <ul>
-      <li>Giàu chất xơ, hỗ trợ tiêu hóa</li>
-      <li>Chứa nhiều vitamin và khoáng chất</li>
-      <li>Không chứa hóa chất độc hại</li>
-      <li>Tươi ngon, giòn ngọt tự nhiên</li>
-    </ul>
-  `,
-  price: 25000,
-  originalPrice: null,
-  discount: null,
-  images: ['/images/products/cai-xanh.jpg', '/images/products/cai-xanh-2.jpg'],
-  category: 'vegetables',
-  certifications: ['organic', 'vegan'],
-  origin: 'Đà Lạt, Lâm Đồng',
-  weight: '500g',
-  expiry: '3-5 ngày',
-  storage: 'Bảo quản trong ngăn mát tủ lạnh',
-  unit: 'bó'
-}
 
 const getCertificationLabel = (cert) => {
   const labels = {
@@ -257,15 +236,6 @@ const getCertificationLabel = (cert) => {
     'non-gmo': 'Không biến đổi gen'
   }
   return labels[cert] || cert
-}
-
-
-const formatDate = (date) => {
-  return new Intl.DateTimeFormat('vi-VN', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  }).format(date)
 }
 
 const increaseQuantity = () => {
@@ -279,10 +249,14 @@ const decreaseQuantity = () => {
 }
 
 const addToCart = () => {
-  console.log('Add to cart:', {
-    product: product.value,
-    quantity: quantity.value
-  })
+  if (!product.value) return
+  
+  const result = addItemToCart(product.value, quantity.value)
+  if (result.success) {
+    showSuccess(result.message)
+  } else {
+    showError('Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng')
+  }
 }
 
 const toggleWishlist = () => {
@@ -290,31 +264,83 @@ const toggleWishlist = () => {
   console.log('Toggle wishlist:', isInWishlist.value)
 }
 
-onMounted(async () => {
-  setTimeout(() => {
-    product.value = mockProduct
-    if (product.value.images && product.value.images.length > 0) {
-      const primaryImage = product.value.images.find(img => img.is_primary)
-      selectedImage.value = getImageUrl(primaryImage ? primaryImage.url : product.value.images[0].url)
-    }
-
-    relatedProducts.value = [
-      {
-        id: 2,
-        name: 'Cà chua cherry hữu cơ',
-        price: 35000,
-        image: '/images/products/ca-chua-cherry.jpg'
-      },
-      {
-        id: 3,
-        name: 'Xà lách xoăn hữu cơ',
-        price: 20000,
-        image: '/images/products/xa-lach-xoan.jpg'
-      }
-    ]
+const fetchProduct = async (productId) => {
+  try {
+    loading.value = true
+    error.value = null
     
+    const response = await getProduct(productId)
+    
+    if (response.success && response.data) {
+      product.value = response.data
+      
+      // Set selected image
+      if (product.value.images && product.value.images.length > 0) {
+        const primaryImage = product.value.images.find(img => img.is_primary)
+        selectedImage.value = getImageUrl(primaryImage ? primaryImage.url : product.value.images[0].url)
+      } else if (product.value.primary_image) {
+        selectedImage.value = getImageUrl(product.value.primary_image)
+      }
+      
+      // Fetch related products from same category
+      if (product.value.category?.id) {
+        await fetchRelatedProducts(product.value.category.id, productId)
+      }
+    } else {
+      error.value = 'Không tìm thấy sản phẩm'
+      product.value = null
+    }
+  } catch (err) {
+    console.error('Error fetching product:', err)
+    error.value = 'Có lỗi xảy ra khi tải thông tin sản phẩm'
+    product.value = null
+  } finally {
     loading.value = false
-  }, 1000)
+  }
+}
+
+const fetchRelatedProducts = async (categoryId, excludeProductId) => {
+  try {
+    const response = await listProducts({
+      category_id: categoryId,
+      active: true,
+      per_page: 5 // Get 5 to ensure we have 4 after filtering out current product
+    })
+    
+    if (response.success && response.data) {
+      // Filter out current product and limit to 4
+      relatedProducts.value = response.data
+        .filter(p => p.id !== excludeProductId)
+        .slice(0, 4)
+        .map(p => ({
+          id: p.id,
+          name: p.name,
+          price: p.price,
+          image: getPrimaryImage(p)
+        }))
+    }
+  } catch (err) {
+    console.error('Error fetching related products:', err)
+    relatedProducts.value = []
+  }
+}
+
+// Watch for route changes to reload product
+watch(() => route.params.id, (newId) => {
+  if (newId) {
+    quantity.value = 1 // Reset quantity when product changes
+    fetchProduct(newId)
+  }
+}, { immediate: false })
+
+onMounted(async () => {
+  const productId = route.params.id
+  if (productId) {
+    await fetchProduct(productId)
+  } else {
+    error.value = 'Không tìm thấy ID sản phẩm'
+    loading.value = false
+  }
 })
 </script>
 

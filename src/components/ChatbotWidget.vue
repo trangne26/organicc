@@ -71,7 +71,7 @@
                   v-for="product in msg.data.products.slice(0, 3)"
                   :key="product.id"
                   class="bg-gray-50 rounded p-2 border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors"
-                  @click="goToProduct(product.slug)"
+                  @click="goToProduct(product.id)"
                 >
                   <div class="flex gap-2">
                     <img
@@ -245,7 +245,7 @@ const formatPrice = (price) => {
 }
 
 const goToProduct = (slug) => {
-  router.push(`/products/${slug}`)
+  router.push(`/product/${slug}`)
   toggleChat()
 }
 
