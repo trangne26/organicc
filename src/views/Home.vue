@@ -41,12 +41,10 @@
           Danh mục sản phẩm
         </h2>
         
-        <!-- Loading state -->
         <div v-if="isLoadingCategories" class="flex justify-center items-center py-8">
           <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
         </div>
         
-        <!-- Error state -->
         <div v-else-if="categoriesError" class="text-center py-8">
           <p class="text-red-600 mb-4">{{ categoriesError }}</p>
           <button 
@@ -57,7 +55,6 @@
           </button>
         </div>
         
-        <!-- Categories grid -->
         <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           <div
             v-for="category in categories"
@@ -83,12 +80,10 @@
         <h2 class="text-3xl font-bold text-center text-gray-800 mb-12">
           Sản phẩm nổi bật
         </h2>
-        <!-- Loading state -->
         <div v-if="isLoadingProducts" class="flex justify-center items-center py-8">
           <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
         </div>
         
-        <!-- Error state -->
         <div v-else-if="productsError" class="text-center py-8">
           <p class="text-red-600 mb-4">{{ productsError }}</p>
           <button 
@@ -99,7 +94,6 @@
           </button>
         </div>
         
-        <!-- Products grid -->
         <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div
             v-for="product in featuredProducts"
@@ -189,7 +183,6 @@ const { getPrimaryImage, formatPrice, handleImageError } = useProductImage()
 const { addToCart } = useCart()
 const { showSuccess, showError } = useNotification()
 
-// Reactive data
 const categories = ref([])
 const featuredProducts = ref([])
 const isLoadingCategories = ref(false)
@@ -197,7 +190,6 @@ const isLoadingProducts = ref(false)
 const categoriesError = ref(null)
 const productsError = ref(null)
 
-// Fetch categories from API
 const fetchCategories = async () => {
   try {
     isLoadingCategories.value = true
@@ -207,14 +199,12 @@ const fetchCategories = async () => {
   } catch (error) {
     console.error('Error fetching categories:', error)
     categoriesError.value = 'Không thể tải danh mục sản phẩm'
-    // Fallback data
     categories.value = []
   } finally {
     isLoadingCategories.value = false
   }
 }
 
-// Fetch featured products from API
 const fetchFeaturedProducts = async () => {
   try {
     isLoadingProducts.value = true
@@ -224,7 +214,6 @@ const fetchFeaturedProducts = async () => {
   } catch (error) {
     console.error('Error fetching featured products:', error)
     productsError.value = 'Không thể tải sản phẩm nổi bật'
-    // Fallback data
     featuredProducts.value = []
   } finally {
     isLoadingProducts.value = false
@@ -272,7 +261,6 @@ const handleAddToCart = (product) => {
   }
 }
 
-// Load data when component mounts
 onMounted(() => {
   fetchCategories()
   fetchFeaturedProducts()

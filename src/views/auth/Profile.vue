@@ -53,14 +53,12 @@
               <h2 class="text-xl font-semibold text-gray-800">Thông tin cá nhân</h2>
             </div>
             
-            <!-- Loading state -->
             <div v-if="loadingUser" class="text-center py-8">
               <div class="text-4xl text-gray-400 mb-4">⏳</div>
               <h3 class="text-lg font-semibold text-gray-600 mb-2">Đang tải thông tin...</h3>
               <p class="text-gray-500">Vui lòng chờ trong giây lát</p>
             </div>
             
-            <!-- Error state -->
             <div v-else-if="userError" class="text-center py-8">
               <div class="text-4xl text-red-400 mb-4">❌</div>
               <h3 class="text-lg font-semibold text-red-600 mb-2">Lỗi tải dữ liệu</h3>
@@ -73,7 +71,6 @@
               </button>
             </div>
             
-            <!-- Form -->
             <form v-else @submit.prevent="updateProfile" class="space-y-6">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -132,14 +129,12 @@
           <div v-if="activeTab === 'orders'" class="bg-white rounded-lg shadow-md p-6">
             <h2 class="text-xl font-semibold text-gray-800 mb-6">Lịch sử đơn hàng</h2>
             
-            <!-- Loading state -->
             <div v-if="loadingOrders" class="text-center py-8">
               <div class="text-4xl text-gray-400 mb-4">⏳</div>
               <h3 class="text-lg font-semibold text-gray-600 mb-2">Đang tải...</h3>
               <p class="text-gray-500">Vui lòng chờ trong giây lát</p>
             </div>
             
-            <!-- Error state -->
             <div v-else-if="ordersError" class="text-center py-8">
               <div class="text-4xl text-red-400 mb-4">❌</div>
               <h3 class="text-lg font-semibold text-red-600 mb-2">Lỗi tải dữ liệu</h3>
@@ -152,7 +147,6 @@
               </button>
             </div>
             
-            <!-- Empty state -->
             <div v-else-if="orders.length === 0" class="text-center py-8">
               <div class="text-4xl text-gray-400 mb-4">📦</div>
               <h3 class="text-lg font-semibold text-gray-600 mb-2">Chưa có đơn hàng nào</h3>
@@ -488,7 +482,6 @@ const passwordForm = ref({
   confirmPassword: ''
 })
 
-// Fetch user data from API
 const fetchUser = async () => {
   loadingUser.value = true
   userError.value = ''
@@ -497,7 +490,6 @@ const fetchUser = async () => {
     const response = await me()
     if (response.success && response.data) {
       const userData = response.data
-      // Map API response to user object
       user.value = {
         id: userData.id,
         fullName: userData.name || '',
@@ -506,7 +498,6 @@ const fetchUser = async () => {
         address: userData.address || ''
       }
       
-      // Update profileForm with user data
       Object.assign(profileForm, {
         fullName: user.value.fullName,
         email: user.value.email,
@@ -526,7 +517,6 @@ const fetchUser = async () => {
   }
 }
 
-// Fetch orders from API
 const fetchOrders = async () => {
   loadingOrders.value = true
   ordersError.value = ''
@@ -546,7 +536,6 @@ const fetchOrders = async () => {
   }
 }
 
-// Load data when component mounts
 onMounted(() => {
   fetchUser()
   fetchOrders()
@@ -623,7 +612,6 @@ const updateProfile = async () => {
   updating.value = true
   
   try {
-    // Prepare payload according to API documentation
     const payload = {
       name: profileForm.fullName,
       phone: profileForm.phone,
@@ -633,7 +621,6 @@ const updateProfile = async () => {
     const response = await updateProfileApi(payload)
     
     if (response.success) {
-      // Update user data
       const userData = response.data || {}
       user.value = {
         ...user.value,
@@ -659,7 +646,6 @@ const changePassword = async () => {
   passwordError.value = ''
   passwordSuccess.value = ''
   
-  // Validation
   if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
     passwordError.value = 'Mật khẩu mới và xác nhận mật khẩu không khớp'
     return

@@ -126,25 +126,18 @@ const handleLogin = async () => {
       remember_me: form.value.remember
     })
 
-    // Xử lý response với cấu trúc { success, message, data: { user, token } }
     if (response.success && response.data) {
-      // Sử dụng setAuth để cập nhật trạng thái authentication
       setAuth(response.data.user, response.data.token)
 
-      // Hiển thị thông báo thành công (tùy chọn)
       console.log('Login success:', response.message)
 
-      // Điều hướng dựa trên redirect query hoặc quyền admin
       const redirectPath = route.query.redirect
       
       if (redirectPath) {
-        // Nếu có redirect query, điều hướng đến đó
         router.push(redirectPath)
       } else if (response.data.user.is_admin) {
-        // Nếu là admin và không có redirect, điều hướng đến admin
         router.push('/admin')
       } else {
-        // Nếu là user thường, điều hướng về trang chủ
         router.push('/')
       }
     } else {

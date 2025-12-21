@@ -123,7 +123,6 @@
             <textarea v-model="form.description" class="mt-1 w-full border rounded px-3 py-2" rows="3"></textarea>
           </label>
           
-          <!-- Image Upload Section -->
           <div class="block md:col-span-2">
             <span class="text-sm text-gray-600">Hình ảnh</span>
             <div class="mt-1">
@@ -136,13 +135,11 @@
               />
             </div>
 
-            <!-- Unified images list: existing + newly uploaded -->
             <div 
               v-if="(editingId && existingImages.length) || uploadedFilesCount > 0" 
               class="mt-3"
             >
               <div class="flex flex-wrap gap-2">
-                <!-- Existing images -->
                 <div 
                   v-for="(img, index) in existingImages" 
                   :key="`existing-${img.id ?? index}`" 
@@ -174,7 +171,6 @@
                   </div>
                 </div>
 
-                <!-- Newly uploaded images -->
                 <div 
                   v-for="(image, index) in uploadedFiles" 
                   :key="`new-${index}`" 
@@ -214,7 +210,6 @@
         </div>
       </form>
     </div>
-    <!-- Delete confirmation modal -->
     <div 
       v-if="pendingDeleteProduct" 
       class="fixed inset-0 z-30 flex items-center justify-center bg-black/50 px-4"
@@ -277,7 +272,6 @@ const form = ref({
   primary_image_index: 0 
 })
 
-// Files upload
 const uploadedFiles = ref([])
 const uploadedFilesCount = ref(0)
 const formSectionRef = ref(null)
@@ -362,7 +356,6 @@ const edit = (p) => {
   existingImages.value = Array.isArray(p.images) ? [...p.images] : []
   removedExistingImageIds.value = []
 
-  // Tự động set ảnh chính ban đầu theo is_primary của ảnh cũ (nếu có)
   const primaryExistingIndex = existingImages.value.findIndex(img => img.is_primary)
 
   form.value = { 
@@ -386,38 +379,30 @@ const edit = (p) => {
 
 const handleImageUpload = (event) => {
   const files = Array.from(event.target.files)
-  console.log('Uploaded files:', files) // Debug log
+  console.log('Uploaded files:', files)
   
-  // Append to reactive files array
   uploadedFiles.value = [...uploadedFiles.value, ...files]
   uploadedFilesCount.value = uploadedFiles.value.length
   
-  // Auto-set primary image if none selected
   if (form.value.primary_image_index === 0 && files.length > 0) {
     form.value.primary_image_index = 0
   }
   
-  // Clear the input so same files can be selected again
   event.target.value = ''
 }
 
 const removeImage = (index) => {
-  // Index kết hợp = số ảnh cũ + index trong uploadedFiles
   const combinedIndex = existingImages.value.length + index
 
-  // Xóa file trong danh sách upload
   uploadedFiles.value.splice(index, 1)
   uploadedFilesCount.value = uploadedFiles.value.length
   
-  // Điều chỉnh primary_image_index do index ảnh mới bị dịch
   if (form.value.primary_image_index === combinedIndex) {
-    // Nếu xóa đúng ảnh đang là ảnh chính -> đưa về 0 (nếu còn ảnh), hoặc 0 mặc định
     form.value.primary_image_index = 0
   } else if (form.value.primary_image_index > combinedIndex) {
     form.value.primary_image_index = form.value.primary_image_index - 1
   }
   
-  // Nếu không còn ảnh nào (cũ + mới), reset về 0
   if (existingImages.value.length === 0 && uploadedFiles.value.length === 0) {
     form.value.primary_image_index = 0
   }
@@ -433,12 +418,9 @@ const removeExistingImage = (index) => {
     removedExistingImageIds.value.push(img.id)
   }
 
-  // Điều chỉnh primary_image_index vì danh sách kết hợp (ảnh cũ + mới) bị dịch index
   if (form.value.primary_image_index === index) {
-    // Nếu xóa đúng ảnh đang là ảnh chính -> đưa về 0 (nếu còn ảnh), hoặc 0 mặc định
     form.value.primary_image_index = 0
   } else if (form.value.primary_image_index > index) {
-    // Mọi index sau vị trí xóa đều -1
     form.value.primary_image_index = form.value.primary_image_index - 1
   }
 
@@ -459,7 +441,6 @@ const save = async () => {
   try {
     const formData = new FormData()
     
-    // Add form fields
     formData.append('category_id', form.value.category_id)
     formData.append('name', form.value.name)
     formData.append('price', form.value.price)
@@ -467,27 +448,23 @@ const save = async () => {
     formData.append('is_active', form.value.is_active)
     formData.append('primary_image_index', form.value.primary_image_index)
 
-    // Thông tin ảnh cũ bị xóa (cho backend nếu có xử lý)
     if (removedExistingImageIds.value.length > 0) {
       removedExistingImageIds.value.forEach(id => {
         formData.append('removed_image_ids[]', id)
       })
     }
     
-    // Add images - only if there are actual files
     console.log('uploadedFiles:', uploadedFiles.value)
     
     if (uploadedFiles.value && uploadedFiles.value.length > 0) {
       uploadedFiles.value.forEach((image, index) => {
         console.log(`Image ${index}:`, image, 'is File?', image instanceof File)
-        // Check if it's a File object
         if (image instanceof File) {
           formData.append('images[]', image)
         }
       })
     }
     
-    // Debug: Log the FormData contents
     console.log('FormData contents:')
     for (let pair of formData.entries()) {
       console.log(pair[0] + ': ' + pair[1])

@@ -228,7 +228,7 @@
     <button
       v-show="showBackToTop"
       @click="scrollToTop"
-      class="fixed bottom-6 right-6 bg-green-600 hover:bg-green-700 text-white p-3 rounded-full shadow-lg transition-all duration-300 z-40"
+      class="fixed bottom-20 right-6 bg-green-600 hover:bg-green-700 text-white p-3 rounded-full shadow-lg transition-all duration-300 z-40"
       aria-label="Lên đầu trang"
     >
       <span class="text-lg">⬆️</span>
@@ -245,7 +245,6 @@ const Dangui = ref(false)
 const Tbao = ref(null)
 const showBackToTop = ref(false)
 
-// Sử dụng composable để lấy dữ liệu categories từ API
 const { categories, loading: categoriesLoading, fetchCategories } = useCategories()
 
 const Guiemail = async () => {
@@ -271,7 +270,6 @@ const handleScroll = () => {
 
 onMounted(async () => {
   window.addEventListener('scroll', handleScroll)
-  // Tải danh mục sản phẩm từ API khi component được mount
   try {
     await fetchCategories()
   } catch (error) {

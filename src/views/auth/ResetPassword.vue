@@ -117,7 +117,6 @@ const passwordInput = ref(null)
 const passwordConfirmationInput = ref(null)
 
 onMounted(() => {
-  // Get token from query parameter
   token.value = route.query.token || route.params.token || ''
   
   if (!token.value) {
@@ -126,7 +125,6 @@ onMounted(() => {
     return
   }
 
-  // Auto focus on first input when component is mounted
   nextTick(() => {
     if (passwordInput.value && !loading.value && !successMessage.value) {
       passwordInput.value.focus()
@@ -171,7 +169,6 @@ const handleReset = async () => {
       successMessage.value = response.message || 'Mật khẩu đã được đặt lại thành công. Vui lòng đăng nhập với mật khẩu mới.'
       showSuccess('Đặt lại mật khẩu thành công')
       
-      // Auto redirect to login after 3 seconds
       setTimeout(() => {
         router.push('/login')
       }, 3000)

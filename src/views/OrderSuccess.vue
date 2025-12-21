@@ -13,7 +13,6 @@
 
     <div class="container mx-auto px-4 py-8">
       <div class="max-w-2xl mx-auto">
-        <!-- Success Icon -->
         <div class="text-center mb-8">
           <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg class="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -26,7 +25,6 @@
           </p>
         </div>
 
-        <!-- Order Information -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-8">
           <h3 class="text-lg font-semibold text-gray-800 mb-4">Thông tin đơn hàng</h3>
           
@@ -69,7 +67,6 @@
           </div>
         </div>
 
-        <!-- Shipping Information -->
         <div v-if="orderData?.shipping_info" class="bg-white rounded-lg shadow-md p-6 mb-8">
           <h3 class="text-lg font-semibold text-gray-800 mb-4">Thông tin giao hàng</h3>
           
@@ -97,7 +94,6 @@
           </div>
         </div>
 
-        <!-- Order Items -->
         <div v-if="orderData?.items && orderData.items.length > 0" class="bg-white rounded-lg shadow-md p-6 mb-8">
           <h3 class="text-lg font-semibold text-gray-800 mb-4">Sản phẩm đã đặt</h3>
           
@@ -127,7 +123,6 @@
           </div>
         </div>
 
-        <!-- Next Steps -->
         <div class="bg-blue-50 rounded-lg p-6 mb-8">
           <h3 class="text-lg font-semibold text-blue-800 mb-3">Bước tiếp theo</h3>
           <div class="space-y-2 text-blue-700">
@@ -146,7 +141,6 @@
           </div>
         </div>
 
-        <!-- Contact Information -->
         <div class="bg-gray-50 rounded-lg p-6 mb-8">
           <h3 class="text-lg font-semibold text-gray-800 mb-3">Thông tin liên hệ</h3>
           <div class="space-y-2 text-gray-600">
@@ -156,7 +150,6 @@
           </div>
         </div>
 
-        <!-- Action Buttons -->
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
           <router-link
             to="/products"
@@ -184,10 +177,8 @@ import { useProductImage } from '@/composables/useProductImage'
 const route = useRoute()
 const { getPrimaryImage } = useProductImage()
 
-// Order data from Checkout.vue
 const orderData = ref(null)
 
-// Fallback data
 const orderId = ref('')
 const orderDate = ref(new Date())
 const orderTotal = ref(0)
@@ -230,7 +221,6 @@ const getDeliveryMethodName = (method) => {
 }
 
 onMounted(() => {
-  // Get order data from route query parameters
   if (route.query.orderData) {
     try {
       orderData.value = JSON.parse(route.query.orderData)
@@ -240,14 +230,12 @@ onMounted(() => {
     }
   }
   
-  // Set fallback data if no order data
   if (!orderData.value) {
     orderId.value = 'ORD' + Date.now().toString().slice(-6)
     orderTotal.value = 0
     paymentMethodName.value = 'Thanh toán khi nhận hàng'
     deliveryMethodName.value = 'Giao hàng tiêu chuẩn'
   } else {
-    // Set data from orderData
     paymentMethodName.value = getPaymentMethodName(orderData.value.payment_method || 'COD')
     deliveryMethodName.value = getDeliveryMethodName(orderData.value.delivery_method || 'standard')
   }

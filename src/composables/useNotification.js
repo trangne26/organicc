@@ -5,19 +5,16 @@ const timeoutId = ref(null)
 
 export const useNotification = () => {
   const showNotification = (message, type = 'success', duration = 3000) => {
-    // Clear existing timeout
     if (timeoutId.value) {
       clearTimeout(timeoutId.value)
     }
 
-    // Set notification
     notification.value = {
       message,
-      type, // 'success', 'error', 'info', 'warning'
+      type,
       show: true
     }
 
-    // Auto hide after duration
     timeoutId.value = setTimeout(() => {
       hideNotification()
     }, duration)
@@ -27,9 +24,9 @@ export const useNotification = () => {
     if (notification.value) {
       notification.value.show = false
       setTimeout(() => {
-        notification.value = null
-      }, 300) // Wait for animation to complete
-    }
+      notification.value = null
+    }, 300)
+  }
   }
 
   const showSuccess = (message) => showNotification(message, 'success')

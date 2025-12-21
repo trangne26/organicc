@@ -212,7 +212,6 @@ const pageTitle = computed(() => {
   return 'Tất cả sản phẩm'
 })
 
-// Fetch products from API
 const fetchProducts = async () => {
   try {
     loading.value = true
@@ -223,7 +222,6 @@ const fetchProducts = async () => {
       active: filters.value.active
     }
 
-    // Add filters if they have values
     if (filters.value.search) params.search = filters.value.search
     if (filters.value.category_id) params.category_id = filters.value.category_id
     if (filters.value.min_price) params.min_price = filters.value.min_price
@@ -248,7 +246,6 @@ const fetchProducts = async () => {
   }
 }
 
-// Fetch categories from API
 const fetchCategories = async () => {
   try {
     const response = await listCategories()
@@ -290,7 +287,6 @@ const handleAddToCart = (product) => {
   }
 }
 
-// Watch for route changes
 watch(() => route.params.category, (newCategory) => {
   if (newCategory) {
     filters.value.category_id = parseInt(newCategory)
@@ -301,7 +297,6 @@ watch(() => route.params.category, (newCategory) => {
   fetchProducts()
 }, { immediate: true })
 
-// Watch for query parameter changes (search)
 watch(() => route.query.search, (newSearch) => {
   if (newSearch) {
     filters.value.search = decodeURIComponent(newSearch)
@@ -312,7 +307,6 @@ watch(() => route.query.search, (newSearch) => {
   fetchProducts()
 }, { immediate: true })
 
-// Watch for filter changes with debounce
 let filterTimeout = null
 watch(filters, () => {
   if (filterTimeout) clearTimeout(filterTimeout)
@@ -322,7 +316,6 @@ watch(filters, () => {
   }, 500)
 }, { deep: true })
 
-// Watch for sorting changes
 watch(sortBy, () => {
   currentPage.value = 1
   fetchProducts()
@@ -330,7 +323,6 @@ watch(sortBy, () => {
 
 onMounted(async () => {
   await fetchCategories()
-  // fetchProducts() will be called by the route watcher with immediate: true
 })
 </script>
 

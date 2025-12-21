@@ -5,7 +5,6 @@ const base = 'api/products'
 export const listProducts = (params) => http.get(base, { params })
 export const getProduct = (id) => http.get(`${base}/${id}`)
 export const createProduct = (payload, config = {}) => {
-  // If payload is FormData, set proper headers
   if (payload instanceof FormData) {
     return http.post(base, payload, {
       headers: {
@@ -18,7 +17,6 @@ export const createProduct = (payload, config = {}) => {
 }
 
 export const updateProduct = (id, payload, config = {}) => {
-  // If payload is FormData, set proper headers
   if (payload instanceof FormData) {
     return http.post(`${base}/${id}/update`, payload, {
       headers: {

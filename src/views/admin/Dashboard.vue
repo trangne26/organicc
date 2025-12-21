@@ -34,7 +34,6 @@ onMounted(async () => {
     metrics.value.totalOrders = orders?.meta?.total ?? (orders?.length ?? 0)
     metrics.value.monthRevenue = 0
   } catch (err) {
-    // ignore in MVP
   }
 })
 </script>

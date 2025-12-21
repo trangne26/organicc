@@ -11,7 +11,6 @@
       </div>
     </section>
     <div class="container mx-auto px-4 py-8">
-      <!-- Empty cart message -->
       <div v-if="isCartEmpty" class="text-center py-12">
         <div class="text-6xl mb-4">🛒</div>
         <h2 class="text-2xl font-bold text-gray-800 mb-4">Giỏ hàng trống</h2>
@@ -376,7 +375,6 @@ const paymentMethods = [
   }
 ]
 
-// Get order items from cart
 const orderItems = computed(() => {
   return cartItems.value
 })
@@ -415,20 +413,16 @@ const prevStep = () => {
   }
 }
 
-// Check if cart is empty
 const isCartEmpty = computed(() => {
   return cartItems.value.length === 0
 })
 
-// Pre-fill user information and check cart on component mount
 onMounted(() => {
-  // Redirect to cart if empty
   if (isCartEmpty.value) {
     router.push('/cart')
     return
   }
   
-  // Pre-fill user information if logged in
   if (isLoggedIn.value && user.value) {
     shippingInfo.value.fullName = user.value.name || ''
     shippingInfo.value.email = user.value.email || ''
@@ -441,7 +435,6 @@ const processOrder = async () => {
   processing.value = true
 
   try {
-    // Format order data according to the specified JSON structure
     const orderData = {
       items: orderItems.value.map(item => ({
         product_id: item.id,
@@ -456,15 +449,12 @@ const processOrder = async () => {
 
     console.log('Order data:', orderData)
 
-    // Call the createOrder API
     const response = await createOrder(orderData)
     
     console.log('Order created successfully:', response)
 
-    // Clear cart after successful order
     clearCart()
     
-    // Redirect to success page with order data
     router.push({
       name: 'OrderSuccess',
       query: {
@@ -486,7 +476,6 @@ const processOrder = async () => {
   } catch (error) {
     console.error('Error creating order:', error)
     
-    // Show error message to user
     alert('Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.')
     
   } finally {

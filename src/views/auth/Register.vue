@@ -193,12 +193,9 @@ const handleRegister = async () => {
       password_confirmation: form.value.confirmPassword
     })
 
-    // Xử lý response với cấu trúc { success, message, data: { user, token } }
     if (response.success && response.data) {
-      // Sử dụng setAuth để cập nhật trạng thái authentication
       setAuth(response.data.user, response.data.token)
 
-      // Điều hướng dựa trên quyền admin
       if (response.data.user.is_admin) {
         router.push('/admin')
       } else {
@@ -210,12 +207,10 @@ const handleRegister = async () => {
   } catch (err) {
     console.error('Register error:', err)
     
-    // Xử lý validation errors từ API
     if (err.payload?.errors) {
       validationErrors.value = err.payload.errors
     }
     
-    // Hiển thị thông báo lỗi chung
     error.value = err.message || err.payload?.message || 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.'
   } finally {
     loading.value = false

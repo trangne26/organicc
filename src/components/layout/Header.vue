@@ -170,18 +170,15 @@
                 v-show="Modanhmuc"
                 class="absolute left-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50"
               >
-                <!-- Loading state -->
                 <div v-if="isLoadingCategories" class="flex items-center justify-center py-4">
                   <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-green-600"></div>
                   <span class="ml-2 text-sm text-gray-600">Đang tải...</span>
                 </div>
                 
-                <!-- Error state -->
                 <div v-else-if="categoriesError" class="px-4 py-2 text-sm text-red-600">
                   {{ categoriesError }}
                 </div>
                 
-                <!-- Categories list -->
                 <template v-else>
                   <router-link
                     v-for="category in Danhmuc"
@@ -243,18 +240,15 @@
                 v-show="mobileModanhmuc"
                 class="ml-4 mt-2 space-y-2"
               >
-                <!-- Loading state -->
                 <div v-if="isLoadingCategories" class="flex items-center justify-center py-2">
                   <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                   <span class="ml-2 text-sm">Đang tải...</span>
                 </div>
                 
-                <!-- Error state -->
                 <div v-else-if="categoriesError" class="px-2 py-1 text-sm text-red-300">
                   {{ categoriesError }}
                 </div>
                 
-                <!-- Categories list -->
                 <template v-else>
                   <router-link
                     v-for="category in Danhmuc"
@@ -314,12 +308,10 @@ const Modanhmuc = ref(false)
 const mobileMenuOpen = ref(false)
 const mobileModanhmuc = ref(false)
 
-// Categories data
 const Danhmuc = ref([])
 const isLoadingCategories = ref(false)
 const categoriesError = ref(null)
 
-// Fetch categories from API
 const fetchCategories = async () => {
   try {
     isLoadingCategories.value = true
@@ -329,7 +321,6 @@ const fetchCategories = async () => {
   } catch (error) {
     console.error('Error fetching categories:', error)
     categoriesError.value = 'Không thể tải danh mục'
-    // Fallback data
     Danhmuc.value = [
       { id: 1, name: 'Rau củ quả', slug: 'vegetables', icon: '🥬' },
       { id: 2, name: 'Trái cây', slug: 'fruits', icon: '🍎' },
@@ -390,7 +381,6 @@ const logout = async () => {
   router.push('/')
 }
 
-// Load categories when component mounts
 onMounted(() => {
   fetchCategories()
 })

@@ -93,7 +93,6 @@ const router = useRouter()
 const { user, userName, userEmail, logout: authLogout } = useAuth()
 const isAccountMenuOpen = ref(false)
 
-// Get first letter of user name for avatar
 const userInitial = computed(() => {
   if (user.value?.name) {
     return user.value.name.charAt(0).toUpperCase()
@@ -115,7 +114,6 @@ const logout = async () => {
   router.push('/login')
 }
 
-// Click outside directive
 const vClickOutside = {
   beforeMount(el, binding) {
     el.clickOutsideEvent = function (event) {
@@ -132,5 +130,4 @@ const vClickOutside = {
 </script>
 
 <style scoped>
-/* Admin header specific styles */
 </style>

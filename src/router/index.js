@@ -28,7 +28,6 @@ import AdminCategories from '@/views/admin/Categories.vue'
 import AdminOrders from '@/views/admin/Orders.vue'
 
 const routes = [
-  // Client routes with ClientLayout
   {
     path: '/',
     component: ClientLayout,
@@ -170,7 +169,6 @@ const routes = [
       }
     ]
   },
-  // Admin routes with AdminLayout
   {
     path: '/admin',
     component: AdminLayout,
@@ -202,7 +200,6 @@ const routes = [
       },
     ],
   },
-  // 404 route
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
@@ -226,39 +223,31 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  // Set document title
   if (to.meta.title) {
     document.title = to.meta.title
   }
 
-  // Get auth state
   const { isLoggedIn, isAdmin } = useAuth()
   
-  // Check if route requires authentication
   if (to.meta.requiresAuth && !isLoggedIn.value) {
     next({ name: 'Login', query: { redirect: to.fullPath } })
     return
   }
   
-  // Check if route requires admin privileges
   if (to.meta.requiresAdmin && !isAdmin.value) {
-    // If user is logged in but not admin, redirect to home
     if (isLoggedIn.value) {
       next({ name: 'Home' })
     } else {
-      // If not logged in, redirect to login
       next({ name: 'Login', query: { redirect: to.fullPath } })
     }
     return
   }
   
-  // Check if route should be hidden for authenticated users
   if (to.meta.hideForAuth && isLoggedIn.value) {
     next({ name: 'Home' })
     return
   }
   
-  // Allow navigation
   next()
 })
 

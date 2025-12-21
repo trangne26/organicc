@@ -293,7 +293,6 @@ const toggleWishlist = () => {
 onMounted(async () => {
   setTimeout(() => {
     product.value = mockProduct
-    // Set selected image to primary image or first image
     if (product.value.images && product.value.images.length > 0) {
       const primaryImage = product.value.images.find(img => img.is_primary)
       selectedImage.value = getImageUrl(primaryImage ? primaryImage.url : product.value.images[0].url)

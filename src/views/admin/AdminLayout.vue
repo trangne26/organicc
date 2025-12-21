@@ -1,10 +1,8 @@
 <template>
   <div class="min-h-screen flex flex-col">
-    <!-- Admin Header -->
     <AdminHeader />
     
     <div class="flex flex-1">
-      <!-- Sidebar -->
       <aside class="w-64 bg-gray-50 border-r border-gray-200 hidden md:block">
         <nav class="p-4 space-y-2">
           <RouterLink 
@@ -45,7 +43,6 @@
         </nav>
       </aside>
       
-      <!-- Main Content -->
       <main class="flex-1 bg-gray-50">
         <div class="p-6">
           <RouterView />
